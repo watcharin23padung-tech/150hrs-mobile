@@ -4,12 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+const MAJORS = [
+  "สาขาวิชาสื่อสารทางกีฬา",
+  "สาขาวิชาวิทยาศาสตร์การออกกำลังกายและการกีฬา",
+  "สาขาวิชาการจัดการกีฬาและการเป็นผู้ฝึกสอนกีฬา",
+];
+
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
   const [mode, setMode] = useState("login"); // login | signup
   const [role, setRole] = useState("student");
+  const [titlePrefix, setTitlePrefix] = useState("นาย");
   const [fullName, setFullName] = useState("");
   const [code, setCode] = useState("");
   const [major, setMajor] = useState("");
@@ -43,10 +50,11 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
+        const combinedName = `${titlePrefix}${fullName.trim()}`;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { role, full_name: fullName } },
+          options: { data: { role, full_name: combinedName } },
         });
         if (error) throw error;
         if (data.user && (code || major || yearLevel || phone || (role === "student" && advisorId))) {
@@ -136,6 +144,13 @@ export default function LoginPage() {
                 อาจารย์
               </button>
             </div>
+            <Field label="คำนำหน้า">
+              <select value={titlePrefix} onChange={(e) => setTitlePrefix(e.target.value)} className="input">
+                <option value="นาย">นาย</option>
+                <option value="นาง">นาง</option>
+                <option value="นางสาว">นางสาว</option>
+              </select>
+            </Field>
             <Field label="ชื่อ-นามสกุล">
               <input
                 required
@@ -155,14 +170,27 @@ export default function LoginPage() {
                 />
               </Field>
             ) : null}
-            <Field label="สาขาวิชา">
-              <input
-                value={major}
-                onChange={(e) => setMajor(e.target.value)}
-                placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
-                className="input"
-              />
-            </Field>
+            {role === "student" ? (
+              <Field label="สาขาวิชา">
+                <select value={major} onChange={(e) => setMajor(e.target.value)} className="input">
+                  <option value="">-- เลือกสาขาวิชา --</option>
+                  {MAJORS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : (
+              <Field label="สาขาวิชา">
+                <input
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                  placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
+                  className="input"
+                />
+              </Field>
+            )}
             {role === "student" && (
               <Field label="ชั้นปี">
                 <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">

@@ -1,259 +1,283 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function ProfileClient({ profile, stats, teachers = [] }) {
+const MAJORS = [
+  "สาขาวิชาสื่อสารทางกีฬา",
+  "สาขาวิชาวิทยาศาสตร์การออกกำลังกายและการกีฬา",
+  "สาขาวิชาการจัดการกีฬาและการเป็นผู้ฝึกสอนกีฬา",
+];
+
+export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
-  const [notifOn, setNotifOn] = useState(profile.notifications_enabled);
-  const [advisorId, setAdvisorId] = useState(profile.advisor_id ?? "");
-  const [savingAdvisor, setSavingAdvisor] = useState(false);
-  const isStudent = profile.role === "student";
-  const initials = profile.full_name?.slice(0, 2) ?? "?";
-  const currentAdvisorName = teachers.find((t) => t.id === profile.advisor_id)?.full_name;
 
-  const [editing, setEditing] = useState(false);
-  const [savingInfo, setSavingInfo] = useState(false);
-  const [infoError, setInfoError] = useState("");
-  const [fullName, setFullName] = useState(profile.full_name ?? "");
-  const [code, setCode] = useState(profile.code ?? "");
-  const [major, setMajor] = useState(profile.major ?? "");
-  const [yearLevel, setYearLevel] = useState(profile.year_level ?? "");
-  const [phone, setPhone] = useState(profile.phone ?? "");
+  const [mode, setMode] = useState("login"); // login | signup
+  const [role, setRole] = useState("student");
+  const [titlePrefix, setTitlePrefix] = useState("นาย");
+  const [fullName, setFullName] = useState("");
+  const [code, setCode] = useState("");
+  const [major, setMajor] = useState("");
+  const [yearLevel, setYearLevel] = useState("");
+  const [phone, setPhone] = useState("");
+  const [advisorId, setAdvisorId] = useState("");
+  const [teachers, setTeachers] = useState([]);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  async function toggleNotif() {
-    const next = !notifOn;
-    setNotifOn(next);
-    await supabase.from("profiles").update({ notifications_enabled: next }).eq("id", profile.id);
-  }
+  useEffect(() => {
+    if (mode === "signup" && role === "student" && teachers.length === 0) {
+      supabase.rpc("list_teachers").then(({ data }) => setTeachers(data ?? []));
+    }
+  }, [mode, role]);
 
-  async function saveInfo(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (!fullName.trim()) {
-      setInfoError("กรุณากรอกชื่อ-นามสกุล");
+    setError("");
+
+    if (mode === "signup" && !/@go\.buu\.ac\.th$/i.test(email.trim())) {
+      setError("กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น");
       return;
     }
-    setInfoError("");
-    setSavingInfo(true);
-    const updates = {
-      full_name: fullName.trim(),
-      major: major.trim() || null,
-      phone: phone.trim() || null,
-    };
-    if (isStudent) {
-      updates.code = code.trim() || null;
-      updates.year_level = yearLevel ? Number(yearLevel) : null;
-    }
-    const { error } = await supabase.from("profiles").update(updates).eq("id", profile.id);
-    setSavingInfo(false);
-    if (error) {
-      setInfoError(error.message);
-      return;
-    }
-    setEditing(false);
-    router.refresh();
-  }
 
-  async function changeAdvisor(e) {
-    const next = e.target.value;
-    setAdvisorId(next);
-    setSavingAdvisor(true);
-    await supabase.from("profiles").update({ advisor_id: next || null }).eq("id", profile.id);
-    setSavingAdvisor(false);
-    router.refresh();
-  }
-
-  async function logout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    setLoading(true);
+    try {
+      if (mode === "login") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const combinedName = `${titlePrefix}${fullName.trim()}`;
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { role, full_name: combinedName } },
+        });
+        if (error) throw error;
+        if (data.user && (code || major || yearLevel || phone || (role === "student" && advisorId))) {
+          const updates = {};
+          if (role === "student" && code) updates.code = code;
+          if (major) updates.major = major;
+          if (role === "student" && yearLevel) updates.year_level = Number(yearLevel);
+          if (phone) updates.phone = phone;
+          if (role === "student" && advisorId) updates.advisor_id = advisorId;
+          await supabase.from("profiles").update(updates).eq("id", data.user.id);
+        }
+      }
+      router.push("/home");
+      router.refresh();
+    } catch (err) {
+      const msg =
+        err.message === "Invalid login credentials"
+          ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+          : /go\.buu\.ac\.th/i.test(err.message)
+          ? "กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น"
+          : err.message;
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="flex flex-col gap-5 p-5 pb-8">
-      <div className="flex flex-col items-center gap-2.5 pt-1.5">
-        <div className="w-[76px] h-[76px] rounded-full bg-primarytint flex items-center justify-center">
-          <div className="font-head font-bold text-2xl text-primarydark">{initials}</div>
+    <div className="flex flex-col h-screen">
+      <div className="flex flex-col items-center gap-3 px-8 pt-14 pb-5">
+        <div className="w-16 h-16 rounded-[20px] bg-primary flex items-center justify-center">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="13" r="8" stroke="white" strokeWidth="1.8" />
+            <path d="M12 9v4l3 2" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9 2h6M12 2v2" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
         </div>
-        <div className="flex flex-col items-center gap-0.5">
-          <div className="font-head font-bold text-lg text-ink">{profile.full_name}</div>
-          <div className="text-[13px] text-ink2">
-            {isStudent
-              ? `รหัสนิสิต ${profile.code ?? "-"}${profile.year_level ? " · ปี " + profile.year_level : ""}${
-                  profile.major ? " · " + profile.major : " · วิทยาศาสตร์การกีฬา"
-                }`
-              : `อาจารย์ที่ปรึกษาฝึกประสบการณ์${profile.major ? " · " + profile.major : ""}`}
+        <div className="flex flex-col items-center gap-1">
+          <div className="font-head font-bold text-lg text-ink text-center leading-snug">
+            ระบบการฝึกประสบการณ์ด้านบริการวิชาการแก่ชุมชน 150 ชั่วโมง
           </div>
+          <div className="text-sm text-ink2 text-center">คณะวิทยาศาสตร์การกีฬา มหาวิทยาลัยบูรพา</div>
         </div>
-        <div className="text-xs text-ink3">{profile.email}</div>
-        {!editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="text-[12.5px] font-semibold text-primary border border-primary rounded-full px-4 py-1.5"
-          >
-            แก้ไขข้อมูลส่วนตัว
-          </button>
-        )}
       </div>
 
-      {editing && (
-        <form onSubmit={saveInfo} className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3.5">
-          <div className="text-[13px] font-semibold text-ink">แก้ไขข้อมูลส่วนตัว</div>
-          <Field label="ชื่อ-นามสกุล">
-            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" />
-          </Field>
-          {isStudent ? (
-            <Field label="รหัสนิสิต">
-              <input value={code} onChange={(e) => setCode(e.target.value)} className="input" />
-            </Field>
-          ) : null}
-          <Field label="สาขาวิชา">
-            <input
-              value={major}
-              onChange={(e) => setMajor(e.target.value)}
-              className="input"
-              placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
-            />
-          </Field>
-          {isStudent && (
-            <Field label="ชั้นปี">
-              <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">
-                <option value="">-- เลือกชั้นปี --</option>
-                <option value="1">ปี 1</option>
-                <option value="2">ปี 2</option>
-                <option value="3">ปี 3</option>
-                <option value="4">ปี 4</option>
-                <option value="5">ปี 5 ขึ้นไป</option>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 pb-6 flex-grow overflow-y-auto">
+        <div className="flex bg-surfacealt rounded-xl p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => setMode("login")}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
+              mode === "login" ? "bg-white text-primary shadow-sm" : "text-ink2"
+            }`}
+          >
+            เข้าสู่ระบบ
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("signup")}
+            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
+              mode === "signup" ? "bg-white text-primary shadow-sm" : "text-ink2"
+            }`}
+          >
+            สมัครสมาชิก
+          </button>
+        </div>
+
+        {mode === "signup" && (
+          <>
+            <div className="flex bg-surfacealt rounded-xl p-1 gap-1">
+              <button
+                type="button"
+                onClick={() => setRole("student")}
+                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
+                  role === "student" ? "bg-white text-primary shadow-sm" : "text-ink2"
+                }`}
+              >
+                นิสิต
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("teacher")}
+                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
+                  role === "teacher" ? "bg-white text-primary shadow-sm" : "text-ink2"
+                }`}
+              >
+                อาจารย์
+              </button>
+            </div>
+            <Field label="คำนำหน้า">
+              <select value={titlePrefix} onChange={(e) => setTitlePrefix(e.target.value)} className="input">
+                <option value="นาย">นาย</option>
+                <option value="นาง">นาง</option>
+                <option value="นางสาว">นางสาว</option>
               </select>
             </Field>
-          )}
-          <Field label="เบอร์โทรศัพท์ติดต่อ">
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="input" placeholder="เช่น 0812345678" />
-          </Field>
-          {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
-          <div className="flex gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(false);
-                setInfoError("");
-                setFullName(profile.full_name ?? "");
-                setCode(profile.code ?? "");
-                setMajor(profile.major ?? "");
-                setYearLevel(profile.year_level ?? "");
-                setPhone(profile.phone ?? "");
-              }}
-              className="flex-1 h-[46px] rounded-2xl border border-border text-ink2 font-semibold text-sm"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="submit"
-              disabled={savingInfo}
-              className="flex-1 h-[46px] rounded-2xl bg-primary text-white font-semibold text-sm disabled:opacity-60"
-            >
-              {savingInfo ? "กำลังบันทึก..." : "บันทึก"}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {isStudent ? (
-        <div className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="text-[13px] font-semibold text-ink">ความคืบหน้าการฝึกฯ</div>
-            <div className="text-xs text-ink3">
-              {stats.approvedHours} / {stats.target} ชม.
-            </div>
-          </div>
-          <div className="h-2 rounded-full bg-surfacealt overflow-hidden">
-            <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${Math.min(100, Math.round((stats.approvedHours / stats.target) * 100))}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <MiniStat value={stats.total} label="บันทึกทั้งหมด" />
-            <MiniStat value={stats.approvedCount} label="อนุมัติแล้ว" />
-            <MiniStat value={stats.remaining} label="เหลือ (ชม.)" />
-          </div>
-        </div>
-      ) : null}
-
-      {isStudent ? (
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[12.5px] font-semibold text-ink3 px-1">อาจารย์ที่ปรึกษา</div>
-          <div className="bg-surface border border-border rounded-2xl px-4 py-3.5 flex flex-col gap-2">
-            <select
-              value={advisorId}
-              onChange={changeAdvisor}
-              disabled={savingAdvisor}
-              className="input"
-            >
-              <option value="">-- ยังไม่ได้เลือก --</option>
-              {teachers.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.full_name}
-                </option>
-              ))}
-            </select>
-            {currentAdvisorName && (
-              <div className="text-[11.5px] text-ink3">อาจารย์ที่ปรึกษาปัจจุบัน: {currentAdvisorName}</div>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-surface border border-border rounded-[18px] p-[18px] flex items-center justify-between">
-          <div className="flex flex-col gap-0.5">
-            <div className="text-[13px] font-semibold text-ink">นิสิตในความดูแล</div>
-            <div className="text-xs text-ink3">รายวิชาฝึกประสบการณ์</div>
-          </div>
-          <div className="font-head font-bold text-[22px] text-primary">{stats.adviseeCount}</div>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-1.5">
-        <div className="text-[12.5px] font-semibold text-ink3 px-1">บัญชีของฉัน</div>
-        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-          <Row label="เชื่อมต่อ Google Drive" right={<span className="text-[11px] font-semibold text-primarydark bg-primarytint px-2.5 py-1 rounded-full">แนบลิงก์ต่อรายการ</span>} />
-          <Row
-            label="การแจ้งเตือน"
-            right={
-              <button onClick={toggleNotif} className="w-[42px] h-[25px] rounded-full relative" style={{ background: notifOn ? "oklch(55% 0.13 165)" : "oklch(88% 0.01 80)" }}>
-                <span
-                  className="w-[19px] h-[19px] rounded-full bg-white absolute top-[3px] shadow"
-                  style={{ left: notifOn ? "20px" : "3px", transition: "left .15s" }}
+            <Field label="ชื่อ-นามสกุล">
+              <input
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="เช่น ณิชา พงษ์ไพบูลย์"
+                className="input"
+              />
+            </Field>
+            {role === "student" ? (
+              <Field label="รหัสนิสิต">
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="เช่น 6512345678"
+                  className="input"
                 />
-              </button>
-            }
+              </Field>
+            ) : null}
+            {role === "student" ? (
+              <Field label="สาขาวิชา">
+                <select value={major} onChange={(e) => setMajor(e.target.value)} className="input">
+                  <option value="">-- เลือกสาขาวิชา --</option>
+                  {MAJORS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : (
+              <Field label="สาขาวิชา">
+                <input
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                  placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
+                  className="input"
+                />
+              </Field>
+            )}
+            {role === "student" && (
+              <Field label="ชั้นปี">
+                <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">
+                  <option value="">-- เลือกชั้นปี --</option>
+                  <option value="1">ปี 1</option>
+                  <option value="2">ปี 2</option>
+                  <option value="3">ปี 3</option>
+                  <option value="4">ปี 4</option>
+                  <option value="5">ปี 5 ขึ้นไป</option>
+                </select>
+              </Field>
+            )}
+            <Field label="เบอร์โทรศัพท์ติดต่อ">
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="เช่น 0812345678"
+                className="input"
+              />
+            </Field>
+            {role === "student" && (
+              <Field label="อาจารย์ที่ปรึกษา">
+                <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">
+                  <option value="">-- เลือกอาจารย์ที่ปรึกษา (เลือกภายหลังได้) --</option>
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.full_name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
+          </>
+        )}
+
+        <Field label="อีเมล">
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="name@go.buu.ac.th"
+            className="input"
           />
-          <Row label="ภาษา" right={<span className="text-[12.5px] text-ink3">ไทย</span>} last />
-        </div>
-      </div>
+          {mode === "signup" && (
+            <div className="text-[11.5px] text-ink3">ใช้ได้เฉพาะอีเมลที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น</div>
+          )}
+        </Field>
+        <Field label="รหัสผ่าน">
+          <input
+            type="password"
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="อย่างน้อย 6 ตัวอักษร"
+            className="input"
+          />
+        </Field>
 
-      <button onClick={logout} className="h-[50px] rounded-2xl border border-danger bg-dangertint text-danger font-semibold text-sm">
-        ออกจากระบบ
-      </button>
-    </div>
-  );
-}
+        {error && <div className="text-danger text-sm bg-dangertint rounded-lg px-3 py-2">{error}</div>}
 
-function MiniStat({ value, label }) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <div className="font-head font-bold text-[15px] text-ink">{value}</div>
-      <div className="text-[10.5px] text-ink3">{label}</div>
-    </div>
-  );
-}
+        <button
+          type="submit"
+          disabled={loading}
+          className="h-[52px] rounded-2xl bg-primary text-white font-semibold text-[15px] disabled:opacity-60"
+        >
+          {loading ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
+        </button>
+      </form>
 
-function Row({ label, right, last }) {
-  return (
-    <div className={`flex items-center gap-3 px-4 py-3.5 ${last ? "" : "border-b border-border"}`}>
-      <div className="text-[13.5px] text-ink flex-grow">{label}</div>
-      {right}
+      <style jsx global>{`
+        .input {
+          height: 48px;
+          border-radius: 12px;
+          border: 1px solid oklch(90% 0.012 80);
+          background: white;
+          padding: 0 14px;
+          font-size: 14px;
+          color: oklch(22% 0.02 80);
+        }
+        .input:focus {
+          outline: 2px solid oklch(55% 0.13 165);
+          outline-offset: 1px;
+        }
+      `}</style>
     </div>
   );
 }

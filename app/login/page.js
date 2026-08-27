@@ -67,8 +67,10 @@ export default function LoginPage() {
           </svg>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <div className="font-head font-bold text-xl text-ink">150+ ชั่วโมงฝึกฯ</div>
-          <div className="text-sm text-ink2 text-center">คณะวิทยาศาสตร์การกีฬา</div>
+          <div className="font-head font-bold text-lg text-ink text-center leading-snug">
+            ระบบการฝึกประสบการณ์ด้านบริการวิชาการแก่ชุมชน 150 ชั่วโมง
+          </div>
+          <div className="text-sm text-ink2 text-center">คณะวิทยาศาสตร์การกีฬา มหาวิทยาลัยบูรพา</div>
         </div>
       </div>
 

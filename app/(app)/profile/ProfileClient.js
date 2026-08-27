@@ -35,8 +35,8 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
     }
     setInfoError("");
     setSavingInfo(true);
-    const updates = { full_name: fullName.trim(), code: code.trim() || null };
-    if (isStudent) updates.major = major.trim() || null;
+    const updates = { full_name: fullName.trim(), major: major.trim() || null };
+    if (isStudent) updates.code = code.trim() || null;
     const { error } = await supabase.from("profiles").update(updates).eq("id", profile.id);
     setSavingInfo(false);
     if (error) {
@@ -73,7 +73,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
           <div className="text-[13px] text-ink2">
             {isStudent
               ? `รหัสนิสิต ${profile.code ?? "-"}${profile.major ? " · " + profile.major : " · วิทยาศาสตร์การกีฬา"}`
-              : `อาจารย์ที่ปรึกษาฝึกประสบการณ์${profile.code ? " · รหัส " + profile.code : ""}`}
+              : `อาจารย์ที่ปรึกษาฝึกประสบการณ์${profile.major ? " · " + profile.major : ""}`}
           </div>
         </div>
         <div className="text-xs text-ink3">{profile.email}</div>
@@ -93,14 +93,19 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
           <Field label="ชื่อ-นามสกุล">
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" />
           </Field>
-          <Field label={isStudent ? "รหัสนิสิต" : "รหัสพนักงาน"}>
-            <input value={code} onChange={(e) => setCode(e.target.value)} className="input" />
-          </Field>
-          {isStudent && (
-            <Field label="สาขา/หลักสูตร">
-              <input value={major} onChange={(e) => setMajor(e.target.value)} className="input" placeholder="เช่น วิทยาศาสตร์การกีฬา" />
+          {isStudent ? (
+            <Field label="รหัสนิสิต">
+              <input value={code} onChange={(e) => setCode(e.target.value)} className="input" />
             </Field>
-          )}
+          ) : null}
+          <Field label="สาขาวิชา">
+            <input
+              value={major}
+              onChange={(e) => setMajor(e.target.value)}
+              className="input"
+              placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
+            />
+          </Field>
           {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
           <div className="flex gap-2.5">
             <button

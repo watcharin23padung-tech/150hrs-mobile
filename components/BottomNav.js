@@ -34,6 +34,17 @@ const items = [
     ),
   },
   {
+    href: "/report",
+    label: "รายงาน",
+    teacherOnly: true,
+    icon: (c) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="4.5" y="3.5" width="15" height="17" rx="2" stroke={c} strokeWidth="1.8" />
+        <path d="M8 8.5h8M8 12h8M8 15.5h5" stroke={c} strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     href: "/profile",
     label: "โปรไฟล์",
     icon: (c) => (
@@ -45,12 +56,13 @@ const items = [
   },
 ];
 
-export default function BottomNav() {
+export default function BottomNav({ role }) {
   const pathname = usePathname();
+  const visibleItems = items.filter((item) => !item.teacherOnly || role === "teacher");
 
   return (
     <div className="flex-shrink-0 h-[76px] bg-surface border-t border-border flex items-center px-2">
-      {items.map((item) => {
+      {visibleItems.map((item) => {
         const active = pathname.startsWith(item.href);
         const color = active ? "oklch(55% 0.13 165)" : "oklch(64% 0.015 80)";
         return (

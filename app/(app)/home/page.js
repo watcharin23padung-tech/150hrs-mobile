@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EntryRow from "@/components/EntryRow";
 
@@ -7,9 +8,20 @@ export default async function HomePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 p-10 text-center">
+        <div className="font-head font-semibold text-ink">กำลังตั้งค่าบัญชีของคุณ...</div>
+        <div className="text-[13px] text-ink3">
+          หากหน้านี้ค้างอยู่นานเกิน 1 นาที ให้ลอง refresh หน้านี้อีกครั้ง
+        </div>
+      </div>
+    );
+  }
 
   if (profile.role === "student") {
     const { data: entries } = await supabase

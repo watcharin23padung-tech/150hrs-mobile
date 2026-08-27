@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,10 +12,18 @@ export default function LoginPage() {
   const [role, setRole] = useState("student");
   const [fullName, setFullName] = useState("");
   const [code, setCode] = useState("");
+  const [advisorId, setAdvisorId] = useState("");
+  const [teachers, setTeachers] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (mode === "signup" && role === "student" && teachers.length === 0) {
+      supabase.rpc("list_teachers").then(({ data }) => setTeachers(data ?? []));
+    }
+  }, [mode, role]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -32,8 +40,11 @@ export default function LoginPage() {
           options: { data: { role, full_name: fullName } },
         });
         if (error) throw error;
-        if (data.user && code) {
-          await supabase.from("profiles").update({ code }).eq("id", data.user.id);
+        if (data.user && (code || (role === "student" && advisorId))) {
+          const updates = {};
+          if (code) updates.code = code;
+          if (role === "student" && advisorId) updates.advisor_id = advisorId;
+          await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
       }
       router.push("/home");
@@ -122,6 +133,18 @@ export default function LoginPage() {
                 className="input"
               />
             </Field>
+            {role === "student" && (
+              <Field label="อาจารย์ที่ปรึกษา">
+                <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">
+                  <option value="">-- เลือกอาจารย์ที่ปรึกษา (เลือกภายหลังได้) --</option>
+                  {teachers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.full_name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
           </>
         )}
 

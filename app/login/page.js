@@ -13,6 +13,8 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState("");
   const [code, setCode] = useState("");
   const [major, setMajor] = useState("");
+  const [yearLevel, setYearLevel] = useState("");
+  const [phone, setPhone] = useState("");
   const [advisorId, setAdvisorId] = useState("");
   const [teachers, setTeachers] = useState([]);
   const [email, setEmail] = useState("");
@@ -29,6 +31,12 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (mode === "signup" && !/@go\.buu\.ac\.th$/i.test(email.trim())) {
+      setError("กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น");
+      return;
+    }
+
     setLoading(true);
     try {
       if (mode === "login") {
@@ -41,10 +49,12 @@ export default function LoginPage() {
           options: { data: { role, full_name: fullName } },
         });
         if (error) throw error;
-        if (data.user && (code || major || (role === "student" && advisorId))) {
+        if (data.user && (code || major || yearLevel || phone || (role === "student" && advisorId))) {
           const updates = {};
           if (role === "student" && code) updates.code = code;
           if (major) updates.major = major;
+          if (role === "student" && yearLevel) updates.year_level = Number(yearLevel);
+          if (phone) updates.phone = phone;
           if (role === "student" && advisorId) updates.advisor_id = advisorId;
           await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
@@ -52,7 +62,13 @@ export default function LoginPage() {
       router.push("/home");
       router.refresh();
     } catch (err) {
-      setError(err.message === "Invalid login credentials" ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : err.message);
+      const msg =
+        err.message === "Invalid login credentials"
+          ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
+          : /go\.buu\.ac\.th/i.test(err.message)
+          ? "กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น"
+          : err.message;
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -138,16 +154,36 @@ export default function LoginPage() {
                   className="input"
                 />
               </Field>
-            ) : (
-              <Field label="สาขาวิชา">
-                <input
-                  value={major}
-                  onChange={(e) => setMajor(e.target.value)}
-                  placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
-                  className="input"
-                />
+            ) : null}
+            <Field label="สาขาวิชา">
+              <input
+                value={major}
+                onChange={(e) => setMajor(e.target.value)}
+                placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
+                className="input"
+              />
+            </Field>
+            {role === "student" && (
+              <Field label="ชั้นปี">
+                <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">
+                  <option value="">-- เลือกชั้นปี --</option>
+                  <option value="1">ปี 1</option>
+                  <option value="2">ปี 2</option>
+                  <option value="3">ปี 3</option>
+                  <option value="4">ปี 4</option>
+                  <option value="5">ปี 5 ขึ้นไป</option>
+                </select>
               </Field>
             )}
+            <Field label="เบอร์โทรศัพท์ติดต่อ">
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="เช่น 0812345678"
+                className="input"
+              />
+            </Field>
             {role === "student" && (
               <Field label="อาจารย์ที่ปรึกษา">
                 <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">
@@ -169,9 +205,12 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@ku.ac.th"
+            placeholder="name@go.buu.ac.th"
             className="input"
           />
+          {mode === "signup" && (
+            <div className="text-[11.5px] text-ink3">ใช้ได้เฉพาะอีเมลที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น</div>
+          )}
         </Field>
         <Field label="รหัสผ่าน">
           <input

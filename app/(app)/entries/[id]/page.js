@@ -7,7 +7,10 @@ export default async function EntryDetailPage({ params }) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) notFound();
+
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  if (!profile) notFound();
 
   const { data: entry } = await supabase
     .from("internship_entries")

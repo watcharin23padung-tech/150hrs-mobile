@@ -14,7 +14,7 @@ export default async function AppLayout({ children }) {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-grow overflow-y-auto">{children}</div>
-      <BottomNav />
+      <BottomNav role={profile?.role} />
     </div>
   );
 }

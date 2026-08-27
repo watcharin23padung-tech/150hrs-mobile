@@ -36,7 +36,6 @@ const items = [
   {
     href: "/report",
     label: "รายงาน",
-    teacherOnly: true,
     icon: (c) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         <rect x="4.5" y="3.5" width="15" height="17" rx="2" stroke={c} strokeWidth="1.8" />

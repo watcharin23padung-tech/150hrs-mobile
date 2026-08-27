@@ -1,0 +1,161 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import EntryRow from "@/components/EntryRow";
+
+export default async function HomePage() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+
+  if (!profile) return null;
+
+  if (profile.role === "student") {
+    const { data: entries } = await supabase
+      .from("internship_entries")
+      .select("*")
+      .eq("student_id", user.id)
+      .order("submitted_at", { ascending: false })
+      .limit(6);
+
+    const { data: allEntries } = await supabase
+      .from("internship_entries")
+      .select("hours,status")
+      .eq("student_id", user.id);
+
+    const total = allEntries?.length ?? 0;
+    const approvedHours = (allEntries ?? [])
+      .filter((e) => e.status === "approved")
+      .reduce((s, e) => s + Number(e.hours), 0);
+    const pendingCount = (allEntries ?? []).filter((e) => e.status === "pending").length;
+    const approvedCount = (allEntries ?? []).filter((e) => e.status === "approved").length;
+    const target = Number(profile.target_hours) || 150;
+    const percent = Math.min(100, Math.round((approvedHours / target) * 100));
+
+    return (
+      <div className="flex flex-col gap-5 p-5 pb-8">
+        <div className="flex flex-col gap-0.5">
+          <div className="text-[13px] text-ink3">สวัสดีตอนเช้า 👋</div>
+          <div className="font-head font-bold text-xl text-ink">{profile.full_name}</div>
+        </div>
+
+        <div className="bg-primary rounded-[20px] p-[22px] flex items-center gap-[18px]">
+          <div
+            className="w-[88px] h-[88px] rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              background: `conic-gradient(white ${(percent / 100) * 360}deg, oklch(100% 0 0 / 0.22) 0deg)`,
+            }}
+          >
+            <div className="w-[70px] h-[70px] rounded-full bg-primary flex items-center justify-center">
+              <div className="font-head font-bold text-lg text-white">{percent}%</div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <div className="text-[12.5px] text-white/85">สะสมชั่วโมงฝึกฯ</div>
+            <div className="font-head font-bold text-[22px] text-white">
+              {approvedHours} <span className="text-sm font-medium text-white/80">/ {target} ชม.</span>
+            </div>
+            <div className="text-xs text-white/85">เหลืออีก {Math.max(0, target - approvedHours)} ชั่วโมง</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2.5">
+          <StatCard value={total} label="บันทึกทั้งหมด" />
+          <StatCard value={pendingCount} label="รออนุมัติ" tone="accent" />
+          <StatCard value={approvedCount} label="อนุมัติแล้ว" tone="primary" />
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <div className="font-head font-semibold text-[15px] text-ink">กิจกรรมล่าสุด</div>
+            <Link href="/search" className="text-primary text-[12.5px] font-semibold">
+              ดูทั้งหมด
+            </Link>
+          </div>
+
+          {(!entries || entries.length === 0) && (
+            <EmptyState text="ยังไม่มีบันทึกชั่วโมงฝึกฯ เริ่มบันทึกครั้งแรกได้เลย" />
+          )}
+
+          {entries?.map((e) => (
+            <EntryRow key={e.id} entry={e} />
+          ))}
+        </div>
+
+        <Link
+          href="/entries/new"
+          className="fixed max-w-md w-full mx-auto left-0 right-0 flex justify-end pr-9"
+          style={{ bottom: "108px" }}
+        >
+          <span className="w-14 h-14 rounded-full bg-primary shadow-lg flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.4" strokeLinecap="round" />
+            </svg>
+          </span>
+        </Link>
+      </div>
+    );
+  }
+
+  // Teacher view
+  const { data: advisees } = await supabase.from("profiles").select("id").eq("advisor_id", user.id);
+  const adviseeIds = (advisees ?? []).map((a) => a.id);
+
+  let pending = [];
+  if (adviseeIds.length) {
+    const { data } = await supabase
+      .from("internship_entries")
+      .select("*, profiles!internship_entries_student_id_fkey(full_name,code)")
+      .in("student_id", adviseeIds)
+      .eq("status", "pending")
+      .order("submitted_at", { ascending: false })
+      .limit(8);
+    pending = data ?? [];
+  }
+
+  return (
+    <div className="flex flex-col gap-5 p-5 pb-8">
+      <div className="flex flex-col gap-0.5">
+        <div className="text-[13px] text-ink3">สวัสดีตอนเช้า</div>
+        <div className="font-head font-bold text-xl text-ink">{profile.full_name}</div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="bg-primary rounded-2xl p-4 flex flex-col gap-1">
+          <div className="font-head font-bold text-2xl text-white">{adviseeIds.length}</div>
+          <div className="text-xs text-white/85">นิสิตในความดูแล</div>
+        </div>
+        <div className="bg-accenttint rounded-2xl p-4 flex flex-col gap-1">
+          <div className="font-head font-bold text-2xl text-[oklch(45%_0.14_70)]">{pending.length}</div>
+          <div className="text-xs text-[oklch(45%_0.1_70)]">รายการรอตรวจ</div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        <div className="font-head font-semibold text-[15px] text-ink">รายการรอตรวจสอบ</div>
+
+        {pending.length === 0 && <EmptyState text="ไม่มีรายการรอตรวจสอบในตอนนี้" />}
+
+        {pending.map((e) => (
+          <EntryRow key={e.id} entry={e} showStudent />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ value, label, tone }) {
+  const bg = tone === "accent" ? "bg-accenttint" : tone === "primary" ? "bg-primarytint" : "bg-surface border border-border";
+  const text = tone === "accent" ? "text-[oklch(45%_0.14_70)]" : tone === "primary" ? "text-primarydark" : "text-ink";
+  return (
+    <div className={`${bg} rounded-2xl py-3.5 px-2.5 flex flex-col items-center gap-0.5`}>
+      <div className={`font-head font-bold text-lg ${text}`}>{value}</div>
+      <div className="text-[11px] text-ink3 text-center">{label}</div>
+    </div>
+  );
+}
+
+function EmptyState({ text }) {
+  return <div className="text-[13px] text-ink3 bg-surfacealt rounded-2xl py-8 text-center">{text}</div>;
+}

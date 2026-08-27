@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap");
+
+html,
+body {
+  background: oklch(98% 0.012 80);
+  color: oklch(22% 0.02 80);
+}
+
+* {
+  box-sizing: border-box;
+}

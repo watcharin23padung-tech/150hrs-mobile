@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [role, setRole] = useState("student");
   const [fullName, setFullName] = useState("");
   const [code, setCode] = useState("");
+  const [major, setMajor] = useState("");
   const [advisorId, setAdvisorId] = useState("");
   const [teachers, setTeachers] = useState([]);
   const [email, setEmail] = useState("");
@@ -40,9 +41,10 @@ export default function LoginPage() {
           options: { data: { role, full_name: fullName } },
         });
         if (error) throw error;
-        if (data.user && (code || (role === "student" && advisorId))) {
+        if (data.user && (code || major || (role === "student" && advisorId))) {
           const updates = {};
-          if (code) updates.code = code;
+          if (role === "student" && code) updates.code = code;
+          if (major) updates.major = major;
           if (role === "student" && advisorId) updates.advisor_id = advisorId;
           await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
@@ -127,14 +129,25 @@ export default function LoginPage() {
                 className="input"
               />
             </Field>
-            <Field label={role === "student" ? "รหัสนิสิต" : "รหัสพนักงาน"}>
-              <input
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder={role === "student" ? "เช่น 6512345678" : "เช่น T-00123"}
-                className="input"
-              />
-            </Field>
+            {role === "student" ? (
+              <Field label="รหัสนิสิต">
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="เช่น 6512345678"
+                  className="input"
+                />
+              </Field>
+            ) : (
+              <Field label="สาขาวิชา">
+                <input
+                  value={major}
+                  onChange={(e) => setMajor(e.target.value)}
+                  placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
+                  className="input"
+                />
+              </Field>
+            )}
             {role === "student" && (
               <Field label="อาจารย์ที่ปรึกษา">
                 <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">

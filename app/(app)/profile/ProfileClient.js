@@ -4,17 +4,29 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function ProfileClient({ profile, stats }) {
+export default function ProfileClient({ profile, stats, teachers = [] }) {
   const router = useRouter();
   const supabase = createClient();
   const [notifOn, setNotifOn] = useState(profile.notifications_enabled);
+  const [advisorId, setAdvisorId] = useState(profile.advisor_id ?? "");
+  const [savingAdvisor, setSavingAdvisor] = useState(false);
   const isStudent = profile.role === "student";
   const initials = profile.full_name?.slice(0, 2) ?? "?";
+  const currentAdvisorName = teachers.find((t) => t.id === profile.advisor_id)?.full_name;
 
   async function toggleNotif() {
     const next = !notifOn;
     setNotifOn(next);
     await supabase.from("profiles").update({ notifications_enabled: next }).eq("id", profile.id);
+  }
+
+  async function changeAdvisor(e) {
+    const next = e.target.value;
+    setAdvisorId(next);
+    setSavingAdvisor(true);
+    await supabase.from("profiles").update({ advisor_id: next || null }).eq("id", profile.id);
+    setSavingAdvisor(false);
+    router.refresh();
   }
 
   async function logout() {
@@ -56,6 +68,30 @@ export default function ProfileClient({ profile, stats }) {
             <MiniStat value={stats.total} label="บันทึกทั้งหมด" />
             <MiniStat value={stats.approvedCount} label="อนุมัติแล้ว" />
             <MiniStat value={stats.remaining} label="เหลือ (ชม.)" />
+          </div>
+        </div>
+      ) : null}
+
+      {isStudent ? (
+        <div className="flex flex-col gap-1.5">
+          <div className="text-[12.5px] font-semibold text-ink3 px-1">อาจารย์ที่ปรึกษา</div>
+          <div className="bg-surface border border-border rounded-2xl px-4 py-3.5 flex flex-col gap-2">
+            <select
+              value={advisorId}
+              onChange={changeAdvisor}
+              disabled={savingAdvisor}
+              className="input"
+            >
+              <option value="">-- ยังไม่ได้เลือก --</option>
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.full_name}
+                </option>
+              ))}
+            </select>
+            {currentAdvisorName && (
+              <div className="text-[11.5px] text-ink3">อาจารย์ที่ปรึกษาปัจจุบัน: {currentAdvisorName}</div>
+            )}
           </div>
         </div>
       ) : (

@@ -13,3 +13,18 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.input {
+  height: 48px;
+  border-radius: 12px;
+  border: 1px solid oklch(90% 0.012 80);
+  background: white;
+  padding: 0 14px;
+  font-size: 14px;
+  color: oklch(22% 0.02 80);
+  width: 100%;
+}
+.input:focus {
+  outline: 2px solid oklch(55% 0.13 165);
+  outline-offset: 1px;
+}

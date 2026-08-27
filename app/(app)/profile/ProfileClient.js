@@ -14,10 +14,37 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const initials = profile.full_name?.slice(0, 2) ?? "?";
   const currentAdvisorName = teachers.find((t) => t.id === profile.advisor_id)?.full_name;
 
+  const [editing, setEditing] = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [infoError, setInfoError] = useState("");
+  const [fullName, setFullName] = useState(profile.full_name ?? "");
+  const [code, setCode] = useState(profile.code ?? "");
+  const [major, setMajor] = useState(profile.major ?? "");
+
   async function toggleNotif() {
     const next = !notifOn;
     setNotifOn(next);
     await supabase.from("profiles").update({ notifications_enabled: next }).eq("id", profile.id);
+  }
+
+  async function saveInfo(e) {
+    e.preventDefault();
+    if (!fullName.trim()) {
+      setInfoError("กรุณากรอกชื่อ-นามสกุล");
+      return;
+    }
+    setInfoError("");
+    setSavingInfo(true);
+    const updates = { full_name: fullName.trim(), code: code.trim() || null };
+    if (isStudent) updates.major = major.trim() || null;
+    const { error } = await supabase.from("profiles").update(updates).eq("id", profile.id);
+    setSavingInfo(false);
+    if (error) {
+      setInfoError(error.message);
+      return;
+    }
+    setEditing(false);
+    router.refresh();
   }
 
   async function changeAdvisor(e) {
@@ -44,11 +71,61 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
         <div className="flex flex-col items-center gap-0.5">
           <div className="font-head font-bold text-lg text-ink">{profile.full_name}</div>
           <div className="text-[13px] text-ink2">
-            {isStudent ? `รหัสนิสิต ${profile.code ?? "-"} · วิทยาศาสตร์การกีฬา` : "อาจารย์ที่ปรึกษาฝึกประสบการณ์"}
+            {isStudent
+              ? `รหัสนิสิต ${profile.code ?? "-"}${profile.major ? " · " + profile.major : " · วิทยาศาสตร์การกีฬา"}`
+              : `อาจารย์ที่ปรึกษาฝึกประสบการณ์${profile.code ? " · รหัส " + profile.code : ""}`}
           </div>
         </div>
         <div className="text-xs text-ink3">{profile.email}</div>
+        {!editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="text-[12.5px] font-semibold text-primary border border-primary rounded-full px-4 py-1.5"
+          >
+            แก้ไขข้อมูลส่วนตัว
+          </button>
+        )}
       </div>
+
+      {editing && (
+        <form onSubmit={saveInfo} className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3.5">
+          <div className="text-[13px] font-semibold text-ink">แก้ไขข้อมูลส่วนตัว</div>
+          <Field label="ชื่อ-นามสกุล">
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" />
+          </Field>
+          <Field label={isStudent ? "รหัสนิสิต" : "รหัสพนักงาน"}>
+            <input value={code} onChange={(e) => setCode(e.target.value)} className="input" />
+          </Field>
+          {isStudent && (
+            <Field label="สาขา/หลักสูตร">
+              <input value={major} onChange={(e) => setMajor(e.target.value)} className="input" placeholder="เช่น วิทยาศาสตร์การกีฬา" />
+            </Field>
+          )}
+          {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
+          <div className="flex gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(false);
+                setInfoError("");
+                setFullName(profile.full_name ?? "");
+                setCode(profile.code ?? "");
+                setMajor(profile.major ?? "");
+              }}
+              className="flex-1 h-[46px] rounded-2xl border border-border text-ink2 font-semibold text-sm"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              disabled={savingInfo}
+              className="flex-1 h-[46px] rounded-2xl bg-primary text-white font-semibold text-sm disabled:opacity-60"
+            >
+              {savingInfo ? "กำลังบันทึก..." : "บันทึก"}
+            </button>
+          </div>
+        </form>
+      )}
 
       {isStudent ? (
         <div className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3">
@@ -144,6 +221,15 @@ function Row({ label, right, last }) {
     <div className={`flex items-center gap-3 px-4 py-3.5 ${last ? "" : "border-b border-border"}`}>
       <div className="text-[13.5px] text-ink flex-grow">{label}</div>
       {right}
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[13px] font-medium text-ink2">{label}</label>
+      {children}
     </div>
   );
 }

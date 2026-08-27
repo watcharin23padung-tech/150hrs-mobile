@@ -16,7 +16,6 @@ export default function LoginPage() {
 
   const [mode, setMode] = useState("login"); // login | signup
   const [role, setRole] = useState("student");
-  const [titlePrefix, setTitlePrefix] = useState("นาย");
   const [fullName, setFullName] = useState("");
   const [code, setCode] = useState("");
   const [major, setMajor] = useState("");
@@ -50,11 +49,10 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else {
-        const combinedName = `${titlePrefix}${fullName.trim()}`;
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { role, full_name: combinedName } },
+          options: { data: { role, full_name: fullName.trim() } },
         });
         if (error) throw error;
         if (data.user && (code || major || yearLevel || phone || (role === "student" && advisorId))) {
@@ -144,13 +142,6 @@ export default function LoginPage() {
                 อาจารย์
               </button>
             </div>
-            <Field label="คำนำหน้า">
-              <select value={titlePrefix} onChange={(e) => setTitlePrefix(e.target.value)} className="input">
-                <option value="นาย">นาย</option>
-                <option value="นาง">นาง</option>
-                <option value="นางสาว">นางสาว</option>
-              </select>
-            </Field>
             <Field label="ชื่อ-นามสกุล">
               <input
                 required

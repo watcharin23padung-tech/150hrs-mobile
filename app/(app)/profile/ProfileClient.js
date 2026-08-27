@@ -20,6 +20,8 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const [fullName, setFullName] = useState(profile.full_name ?? "");
   const [code, setCode] = useState(profile.code ?? "");
   const [major, setMajor] = useState(profile.major ?? "");
+  const [yearLevel, setYearLevel] = useState(profile.year_level ?? "");
+  const [phone, setPhone] = useState(profile.phone ?? "");
 
   async function toggleNotif() {
     const next = !notifOn;
@@ -35,8 +37,15 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
     }
     setInfoError("");
     setSavingInfo(true);
-    const updates = { full_name: fullName.trim(), major: major.trim() || null };
-    if (isStudent) updates.code = code.trim() || null;
+    const updates = {
+      full_name: fullName.trim(),
+      major: major.trim() || null,
+      phone: phone.trim() || null,
+    };
+    if (isStudent) {
+      updates.code = code.trim() || null;
+      updates.year_level = yearLevel ? Number(yearLevel) : null;
+    }
     const { error } = await supabase.from("profiles").update(updates).eq("id", profile.id);
     setSavingInfo(false);
     if (error) {
@@ -72,7 +81,9 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
           <div className="font-head font-bold text-lg text-ink">{profile.full_name}</div>
           <div className="text-[13px] text-ink2">
             {isStudent
-              ? `รหัสนิสิต ${profile.code ?? "-"}${profile.major ? " · " + profile.major : " · วิทยาศาสตร์การกีฬา"}`
+              ? `รหัสนิสิต ${profile.code ?? "-"}${profile.year_level ? " · ปี " + profile.year_level : ""}${
+                  profile.major ? " · " + profile.major : " · วิทยาศาสตร์การกีฬา"
+                }`
               : `อาจารย์ที่ปรึกษาฝึกประสบการณ์${profile.major ? " · " + profile.major : ""}`}
           </div>
         </div>
@@ -106,6 +117,21 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
               placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
             />
           </Field>
+          {isStudent && (
+            <Field label="ชั้นปี">
+              <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">
+                <option value="">-- เลือกชั้นปี --</option>
+                <option value="1">ปี 1</option>
+                <option value="2">ปี 2</option>
+                <option value="3">ปี 3</option>
+                <option value="4">ปี 4</option>
+                <option value="5">ปี 5 ขึ้นไป</option>
+              </select>
+            </Field>
+          )}
+          <Field label="เบอร์โทรศัพท์ติดต่อ">
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="input" placeholder="เช่น 0812345678" />
+          </Field>
           {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
           <div className="flex gap-2.5">
             <button
@@ -116,6 +142,8 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
                 setFullName(profile.full_name ?? "");
                 setCode(profile.code ?? "");
                 setMajor(profile.major ?? "");
+                setYearLevel(profile.year_level ?? "");
+                setPhone(profile.phone ?? "");
               }}
               className="flex-1 h-[46px] rounded-2xl border border-border text-ink2 font-semibold text-sm"
             >

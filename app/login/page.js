@@ -142,12 +142,14 @@ export default function LoginPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder={role === "teacher" ? "เช่น ดร.วัชชริน ผดุงรัชดากิจ" : "เช่น ณิชา พงษ์ไพบูลย์"}
+                placeholder={role === "teacher" ? "เช่น ดร.วัชชริน ผดุงรัชดากิจ" : "เช่น นางสาวณิชา พงษ์ไพบูลย์"}
                 className="input"
               />
-              {role === "teacher" && (
-                <div className="text-[11.5px] text-ink3">กรุณาใส่คำนำหน้า เช่น ดร. ผศ. รศ. นำหน้าชื่อด้วย</div>
-              )}
+              <div className="text-[11.5px] text-ink3">
+                {role === "teacher"
+                  ? "กรุณาใส่คำนำหน้า เช่น ดร. ผศ. รศ. นำหน้าชื่อด้วย"
+                  : "กรุณาใส่คำนำหน้า นาย/นางสาว นำหน้าชื่อด้วย"}
+              </div>
             </Field>
             {role === "student" ? (
               <Field label="รหัสนิสิต">

@@ -20,9 +20,9 @@ export default function LoginPage() {
   const [code, setCode] = useState("");
   const [major, setMajor] = useState("");
   const [yearLevel, setYearLevel] = useState("");
-  const [phone, setPhone] = useState("");
   const [advisorId, setAdvisorId] = useState("");
   const [teachers, setTeachers] = useState([]);
+  const [contactEmail, setContactEmail] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,12 +55,12 @@ export default function LoginPage() {
           options: { data: { role, full_name: fullName.trim() } },
         });
         if (error) throw error;
-        if (data.user && (code || major || yearLevel || phone || (role === "student" && advisorId))) {
+        if (data.user && (code || major || yearLevel || contactEmail || (role === "student" && advisorId))) {
           const updates = {};
           if (role === "student" && code) updates.code = code;
           if (major) updates.major = major;
           if (role === "student" && yearLevel) updates.year_level = Number(yearLevel);
-          if (phone) updates.phone = phone;
+          if (contactEmail) updates.phone = contactEmail;
           if (role === "student" && advisorId) updates.advisor_id = advisorId;
           await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
@@ -142,9 +142,12 @@ export default function LoginPage() {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="เช่น ณิชา พงษ์ไพบูลย์"
+                placeholder={role === "teacher" ? "เช่น ดร.วัชชริน ผดุงรัชดากิจ" : "เช่น ณิชา พงษ์ไพบูลย์"}
                 className="input"
               />
+              {role === "teacher" && (
+                <div className="text-[11.5px] text-ink3">กรุณาใส่คำนำหน้า เช่น ดร. ผศ. รศ. นำหน้าชื่อด้วย</div>
+              )}
             </Field>
             {role === "student" ? (
               <Field label="รหัสนิสิต">
@@ -189,12 +192,12 @@ export default function LoginPage() {
                 </select>
               </Field>
             )}
-            <Field label="เบอร์โทรศัพท์ติดต่อ">
+            <Field label="อีเมลติดต่อ">
               <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="เช่น 0812345678"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="เช่น name@example.com"
                 className="input"
               />
             </Field>

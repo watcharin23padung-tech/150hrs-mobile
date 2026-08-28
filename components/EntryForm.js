@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { CATEGORY_META, OTHER_VALUE, getWorkTypeOptions } from "@/lib/workCategories";
 
-export default function EntryForm({ initial }) {
+export default function EntryForm({ initial, major }) {
   const router = useRouter();
   const supabase = createClient();
   const isEdit = Boolean(initial);
@@ -20,6 +21,20 @@ export default function EntryForm({ initial }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [workCategory, setWorkCategory] = useState(initial?.work_category ?? "main");
+  const typeOptions = useMemo(() => getWorkTypeOptions(major, workCategory), [major, workCategory]);
+  const initialIsOther = Boolean(initial?.work_type) && !typeOptions.includes(initial?.work_type);
+  const [workType, setWorkType] = useState(
+    initial?.work_type ? (initialIsOther ? OTHER_VALUE : initial.work_type) : ""
+  );
+  const [workTypeOther, setWorkTypeOther] = useState(initialIsOther ? initial.work_type : "");
+
+  function handleCategoryChange(cat) {
+    setWorkCategory(cat);
+    setWorkType("");
+    setWorkTypeOther("");
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -28,6 +43,9 @@ export default function EntryForm({ initial }) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
+      const resolvedWorkType =
+        workCategory === "volunteer" ? null : workType === OTHER_VALUE ? workTypeOther || null : workType || null;
 
       const payload = {
         place,
@@ -38,6 +56,8 @@ export default function EntryForm({ initial }) {
         description: description || null,
         evidence_url: evidenceUrl || null,
         evidence_name: evidenceName || null,
+        work_category: workCategory,
+        work_type: resolvedWorkType,
       };
 
       if (isEdit) {
@@ -76,6 +96,51 @@ export default function EntryForm({ initial }) {
       </div>
 
       <form onSubmit={handleSubmit} className="flex-grow overflow-y-auto px-5 pb-6 flex flex-col gap-3.5">
+        <Field label="ประเภทภาระงาน">
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(CATEGORY_META).map(([key, meta]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleCategoryChange(key)}
+                className={`rounded-xl py-2.5 text-[12.5px] font-semibold text-center ${
+                  workCategory === key ? "bg-primary text-white" : "bg-surfacealt text-ink2"
+                }`}
+              >
+                {meta.short}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        {workCategory !== "volunteer" && typeOptions.length > 0 && (
+          <Field label="ประเภทงาน">
+            <select value={workType} onChange={(e) => setWorkType(e.target.value)} className="input" required>
+              <option value="" disabled>
+                เลือกประเภทงาน
+              </option>
+              {typeOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+              <option value={OTHER_VALUE}>อื่น ๆ ที่เกี่ยวข้อง ระบุ...</option>
+            </select>
+          </Field>
+        )}
+
+        {workCategory !== "volunteer" && workType === OTHER_VALUE && (
+          <Field label="ระบุประเภทงาน">
+            <input
+              required
+              value={workTypeOther}
+              onChange={(e) => setWorkTypeOther(e.target.value)}
+              placeholder="ระบุประเภทงานที่ทำ"
+              className="input"
+            />
+          </Field>
+        )}
+
         <Field label="สถานที่ฝึกประสบการณ์">
           <input required value={place} onChange={(e) => setPlace(e.target.value)} placeholder="เช่น สนามกีฬาโรงเรียนสาธิตฯ" className="input" />
         </Field>

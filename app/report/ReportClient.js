@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatThaiDate } from "@/lib/status";
+import { MIN_MAIN_HOURS } from "@/lib/workCategories";
 
 const SORTS = {
   progress_asc: { label: "คืบหน้าน้อยสุดก่อน", fn: (a, b) => a.percent - b.percent },
@@ -121,7 +122,26 @@ function StudentCard({ student }) {
           <span>{student.lastActivity ? formatThaiDate(student.lastActivity) : "ยังไม่มีบันทึก"}</span>
         </div>
       </div>
+
+      {student.categoryHours && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <MiniTag
+            label={`หลัก ${student.categoryHours.main ?? 0}/${MIN_MAIN_HOURS}+`}
+            ok={(student.categoryHours.main ?? 0) >= MIN_MAIN_HOURS}
+          />
+          <span className="text-[10.5px] text-ink3">รอง {student.categoryHours.secondary ?? 0} ชม.</span>
+          <span className="text-[10.5px] text-ink3">จิตอาสา {student.categoryHours.volunteer ?? 0} ชม.</span>
+        </div>
+      )}
     </div>
+  );
+}
+
+function MiniTag({ label, ok }) {
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${ok ? "bg-primarytint text-primarydark" : "bg-dangertint text-danger"}`}>
+      {label}
+    </span>
   );
 }
 

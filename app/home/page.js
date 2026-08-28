@@ -36,17 +36,33 @@ export default async function HomePage() {
 
     const { data: allEntries } = await supabase
       .from("internship_entries")
-      .select("hours,status")
+      .select("hours,status,work_category")
       .eq("student_id", user.id);
 
     const total = allEntries?.length ?? 0;
-    const approvedHours = (allEntries ?? [])
-      .filter((e) => e.status === "approved")
-      .reduce((s, e) => s + Number(e.hours), 0);
+    const approvedEntries = (allEntries ?? []).filter((e) => e.status === "approved");
+    const approvedHours = approvedEntries.reduce((s, e) => s + Number(e.hours), 0);
     const pendingCount = (allEntries ?? []).filter((e) => e.status === "pending").length;
-    const approvedCount = (allEntries ?? []).filter((e) => e.status === "approved").length;
+    const approvedCount = approvedEntries.length;
     const target = Number(profile.target_hours) || 150;
     const percent = Math.min(100, Math.round((approvedHours / target) * 100));
+
+    const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
+    approvedEntries.forEach((e) => {
+      const cat = e.work_category ?? "main";
+      categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
+    });
+    const catPercent = (v) => Math.min(100, Math.round((v / target) * 100));
+    const catColors = { main: "white", secondary: "oklch(85% 0.14 70)", volunteer: "oklch(75% 0.03 200)" };
+    let accHours = 0;
+    const stops = ["main", "secondary", "volunteer"]
+      .map((key) => {
+        const fromDeg = (Math.min(accHours, target) / target) * 360;
+        accHours += categoryHours[key];
+        const toDeg = (Math.min(accHours, target) / target) * 360;
+        return `${catColors[key]} ${fromDeg}deg ${toDeg}deg`;
+      })
+      .join(", ");
 
     return (
       <AppFrame role={profile.role}>
@@ -56,23 +72,31 @@ export default async function HomePage() {
           <div className="font-head font-bold text-xl text-ink">{profile.full_name}</div>
         </div>
 
-        <div className="bg-primary rounded-[20px] p-[22px] flex items-center gap-[18px]">
-          <div
-            className="w-[88px] h-[88px] rounded-full flex items-center justify-center flex-shrink-0"
-            style={{
-              background: `conic-gradient(white ${(percent / 100) * 360}deg, oklch(100% 0 0 / 0.22) 0deg)`,
-            }}
-          >
-            <div className="w-[70px] h-[70px] rounded-full bg-primary flex items-center justify-center">
-              <div className="font-head font-bold text-lg text-white">{percent}%</div>
+        <div className="bg-primary rounded-[20px] p-[22px] flex flex-col gap-4">
+          <div className="flex items-center gap-[18px]">
+            <div
+              className="w-[88px] h-[88px] rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: `conic-gradient(${stops}, oklch(100% 0 0 / 0.22) 0deg)`,
+              }}
+            >
+              <div className="w-[70px] h-[70px] rounded-full bg-primary flex items-center justify-center">
+                <div className="font-head font-bold text-lg text-white">{percent}%</div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="text-[12.5px] text-white/85">สะสมชั่วโมงฝึกฯ</div>
+              <div className="font-head font-bold text-[22px] text-white">
+                {approvedHours} <span className="text-sm font-medium text-white/80">/ {target} ชม.</span>
+              </div>
+              <div className="text-xs text-white/85">เหลืออีก {Math.max(0, target - approvedHours)} ชั่วโมง</div>
             </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <div className="text-[12.5px] text-white/85">สะสมชั่วโมงฝึกฯ</div>
-            <div className="font-head font-bold text-[22px] text-white">
-              {approvedHours} <span className="text-sm font-medium text-white/80">/ {target} ชม.</span>
-            </div>
-            <div className="text-xs text-white/85">เหลืออีก {Math.max(0, target - approvedHours)} ชั่วโมง</div>
+
+          <div className="flex items-center gap-3 border-t border-white/15 pt-3">
+            <CategoryLegend color="white" label="หลัก" value={categoryHours.main} percent={catPercent(categoryHours.main)} note={categoryHours.main >= 50 ? "ครบ 50+" : "ต้องครบ 50"} />
+            <CategoryLegend color="oklch(85% 0.14 70)" label="รอง" value={categoryHours.secondary} percent={catPercent(categoryHours.secondary)} />
+            <CategoryLegend color="oklch(75% 0.03 200)" label="จิตอาสา" value={categoryHours.volunteer} percent={catPercent(categoryHours.volunteer)} />
           </div>
         </div>
 
@@ -161,6 +185,22 @@ export default async function HomePage() {
       </div>
     </div>
     </AppFrame>
+  );
+}
+
+function CategoryLegend({ color, label, value, percent, note }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
+      <div className="flex flex-col min-w-0">
+        <div className="text-[11px] text-white/85 truncate">
+          {label} · {percent}%
+        </div>
+        <div className="text-[10.5px] text-white/70 truncate">
+          {value} ชม.{note ? ` · ${note}` : ""}
+        </div>
+      </div>
+    </div>
   );
 }
 

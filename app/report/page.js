@@ -17,7 +17,7 @@ export default async function ReportPage() {
   if (profile.role === "student") {
     const { data: entries } = await supabase
       .from("internship_entries")
-      .select("id, place, hours, status, activity_date, reviewer_comment, submitted_at")
+      .select("id, place, hours, status, activity_date, reviewer_comment, submitted_at, work_category, work_type")
       .eq("student_id", user.id)
       .order("activity_date", { ascending: false });
 
@@ -40,7 +40,7 @@ export default async function ReportPage() {
   if (adviseeIds.length) {
     const { data: entries } = await supabase
       .from("internship_entries")
-      .select("student_id, hours, status, activity_date")
+      .select("student_id, hours, status, activity_date, work_category")
       .in("student_id", adviseeIds);
 
     (entries ?? []).forEach((e) => {
@@ -63,6 +63,12 @@ export default async function ReportPage() {
       .sort()
       .at(-1);
 
+    const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
+    approved.forEach((e) => {
+      const cat = e.work_category ?? "main";
+      categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
+    });
+
     return {
       id: a.id,
       fullName: a.full_name,
@@ -76,6 +82,7 @@ export default async function ReportPage() {
       pendingCount,
       rejectedCount,
       lastActivity: lastActivity ?? null,
+      categoryHours,
     };
   });
 

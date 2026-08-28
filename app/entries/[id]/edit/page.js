@@ -10,7 +10,7 @@ export default async function EditEntryPage({ params }) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("role, major").eq("id", user.id).single();
   if (!profile) redirect("/login");
 
   const { data: entry } = await supabase.from("internship_entries").select("*").eq("id", params.id).single();
@@ -18,7 +18,7 @@ export default async function EditEntryPage({ params }) {
 
   return (
     <AppFrame role={profile.role}>
-      <EntryForm initial={entry} />
+      <EntryForm initial={entry} major={profile.major} />
     </AppFrame>
   );
 }

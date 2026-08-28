@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const ICON = {
@@ -46,11 +47,17 @@ function timeAgo(dateStr) {
 
 export default function NotificationsClient({ notifications }) {
   const supabase = createClient();
+  const router = useRouter();
   const [items, setItems] = useState(notifications);
 
   async function markRead(id) {
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
     await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+  }
+
+  async function handleClick(n) {
+    if (!n.is_read) await markRead(n.id);
+    if (n.entry_id) router.push(`/entries/${n.entry_id}`);
   }
 
   async function markAll() {
@@ -76,7 +83,7 @@ export default function NotificationsClient({ notifications }) {
         {items.map((n) => (
           <button
             key={n.id}
-            onClick={() => markRead(n.id)}
+            onClick={() => handleClick(n)}
             className="text-left bg-surface border border-border rounded-2xl p-3.5 flex gap-3 items-start"
           >
             <div className={`w-[38px] h-[38px] rounded-[11px] ${BG[n.type] ?? BG.system} flex items-center justify-center flex-shrink-0`}>

@@ -255,6 +255,16 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
       <button onClick={logout} className="h-[50px] rounded-2xl border border-danger bg-dangertint text-danger font-semibold text-sm">
         ออกจากระบบ
       </button>
+
+      <div className="text-center text-[11px] text-ink3 leading-relaxed pb-2">
+        พัฒนาโดย ดร.วัชชริน ผดุงรัชดากิจ
+        <br />
+        อาจารย์ประจำสาขาวิชาสื่อสารทางกีฬา
+        <br />
+        คณะวิทยาศาสตร์การกีฬา มหาวิทยาลัยบูรพา
+        <br />
+        พ.ศ. 2569
+      </div>
     </div>
   );
 }

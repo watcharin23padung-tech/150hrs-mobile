@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatThaiDate } from "@/lib/status";
+import { CATEGORY_META, MIN_MAIN_HOURS } from "@/lib/workCategories";
 
 const MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
 export default function StudentReportClient({ profile, entries }) {
   const target = Number(profile.target_hours) || 150;
+  const [catFilter, setCatFilter] = useState("all");
 
   const approved = entries.filter((e) => e.status === "approved");
   const pending = entries.filter((e) => e.status === "pending");
@@ -15,6 +17,17 @@ export default function StudentReportClient({ profile, entries }) {
   const approvedHours = approved.reduce((s, e) => s + Number(e.hours), 0);
   const percent = Math.min(100, Math.round((approvedHours / target) * 100));
   const remaining = Math.max(0, target - approvedHours);
+
+  const categoryHours = useMemo(() => {
+    const map = { main: 0, secondary: 0, volunteer: 0 };
+    approved.forEach((e) => {
+      const cat = e.work_category ?? "main";
+      map[cat] = (map[cat] ?? 0) + Number(e.hours);
+    });
+    return map;
+  }, [approved]);
+
+  const filteredEntries = catFilter === "all" ? entries : entries.filter((e) => (e.work_category ?? "main") === catFilter);
 
   const monthly = useMemo(() => {
     const map = {};
@@ -69,6 +82,59 @@ export default function StudentReportClient({ profile, entries }) {
       </div>
 
       <div className="flex flex-col gap-2.5">
+        <div className="font-head font-semibold text-[15px] text-ink">ชั่วโมงแยกตามประเภทภาระงาน</div>
+        <div className="flex flex-col gap-2">
+          {Object.entries(CATEGORY_META).map(([key, meta]) => {
+            const hrs = categoryHours[key] ?? 0;
+            const min = key === "main" ? MIN_MAIN_HOURS : null;
+            const met = min ? hrs >= min : true;
+            return (
+              <div key={key} className="bg-surface border border-border rounded-2xl p-3.5 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.bg} ${meta.text}`}>{meta.label}</span>
+                  {min && (
+                    <span className={`text-[11px] font-medium ${met ? "text-primarydark" : "text-danger"}`}>
+                      {met ? "ครบเกณฑ์ขั้นต่ำ" : `ต้องครบ ${min} ชม.`}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[13.5px] font-head font-bold text-ink flex-shrink-0">
+                  {hrs} {min ? `/ ${min}+ ชม.` : "ชม."}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
+        <div className="font-head font-semibold text-[15px] text-ink">รายการบันทึกแยกตามภาระงาน</div>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+          <CatTab active={catFilter === "all"} onClick={() => setCatFilter("all")} label="ทั้งหมด" />
+          {Object.entries(CATEGORY_META).map(([key, meta]) => (
+            <CatTab key={key} active={catFilter === key} onClick={() => setCatFilter(key)} label={meta.short} />
+          ))}
+        </div>
+        <div className="flex flex-col gap-2">
+          {filteredEntries.length === 0 && (
+            <div className="text-[13px] text-ink3 bg-surfacealt rounded-2xl py-8 text-center">ไม่มีรายการในหมวดนี้</div>
+          )}
+          {filteredEntries.map((e) => (
+            <Link key={e.id} href={`/entries/${e.id}`} className="bg-surface border border-border rounded-2xl p-3.5 flex flex-col gap-1">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-[13.5px] font-semibold text-ink truncate">{e.place}</div>
+                <div className="text-[12.5px] font-head font-bold text-ink flex-shrink-0">{e.hours} ชม.</div>
+              </div>
+              <div className="flex items-center justify-between text-[11.5px] text-ink3">
+                <span>{e.work_type || CATEGORY_META[e.work_category ?? "main"].label}</span>
+                <span>{formatThaiDate(e.activity_date)}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2.5">
         <div className="font-head font-semibold text-[15px] text-ink">ชั่วโมงที่อนุมัติรายเดือน</div>
         {monthly.rows.length === 0 ? (
           <div className="text-[13px] text-ink3 bg-surfacealt rounded-2xl py-8 text-center">
@@ -115,6 +181,19 @@ export default function StudentReportClient({ profile, entries }) {
         </div>
       )}
     </div>
+  );
+}
+
+function CatTab({ active, onClick, label }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-shrink-0 rounded-full px-3 py-1.5 text-[12px] font-semibold whitespace-nowrap ${
+        active ? "bg-primary text-white" : "bg-surfacealt text-ink2"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 

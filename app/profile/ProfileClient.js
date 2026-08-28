@@ -27,7 +27,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const [code, setCode] = useState(profile.code ?? "");
   const [major, setMajor] = useState(profile.major ?? "");
   const [yearLevel, setYearLevel] = useState(profile.year_level ?? "");
-  const [phone, setPhone] = useState(profile.phone ?? "");
+  const [contactEmail, setContactEmail] = useState(profile.phone ?? "");
 
   async function toggleNotif() {
     const next = !notifOn;
@@ -46,7 +46,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
     const updates = {
       full_name: fullName.trim(),
       major: major.trim() || null,
-      phone: phone.trim() || null,
+      phone: contactEmail.trim() || null,
     };
     if (isStudent) {
       updates.code = code.trim() || null;
@@ -108,7 +108,15 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
         <form onSubmit={saveInfo} className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3.5">
           <div className="text-[13px] font-semibold text-ink">แก้ไขข้อมูลส่วนตัว</div>
           <Field label="ชื่อ-นามสกุล">
-            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="input" />
+            <input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder={isStudent ? "เช่น ณิชา พงษ์ไพบูลย์" : "เช่น ดร.วัชชริน ผดุงรัชดากิจ"}
+              className="input"
+            />
+            {!isStudent && (
+              <div className="text-[11.5px] text-ink3">กรุณาใส่คำนำหน้า เช่น ดร. ผศ. รศ. นำหน้าชื่อด้วย</div>
+            )}
           </Field>
           {isStudent ? (
             <Field label="รหัสนิสิต">
@@ -148,8 +156,14 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
               </select>
             </Field>
           )}
-          <Field label="เบอร์โทรศัพท์ติดต่อ">
-            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="input" placeholder="เช่น 0812345678" />
+          <Field label="อีเมลติดต่อ">
+            <input
+              type="email"
+              value={contactEmail}
+              onChange={(e) => setContactEmail(e.target.value)}
+              className="input"
+              placeholder="เช่น name@example.com"
+            />
           </Field>
           {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
           <div className="flex gap-2.5">
@@ -162,7 +176,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
                 setCode(profile.code ?? "");
                 setMajor(profile.major ?? "");
                 setYearLevel(profile.year_level ?? "");
-                setPhone(profile.phone ?? "");
+                setContactEmail(profile.phone ?? "");
               }}
               className="flex-1 h-[46px] rounded-2xl border border-border text-ink2 font-semibold text-sm"
             >
@@ -257,13 +271,11 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
       </button>
 
       <div className="text-center text-[11px] text-ink3 leading-relaxed pb-2">
-        พัฒนาโดย ดร.วัชชริน ผดุงรัชดากิจ
+        พัฒนาระบบ ดร.วัชชริน ผดุงรัชดากิจ @2569
         <br />
-        อาจารย์ประจำสาขาวิชาสื่อสารทางกีฬา
+        สาขาวิชาสื่อสารทางกีฬา คณะวิทยาศาสตร์การกีฬา
         <br />
-        คณะวิทยาศาสตร์การกีฬา มหาวิทยาลัยบูรพา
-        <br />
-        พ.ศ. 2569
+        มหาวิทยาลัยบูรพา
       </div>
     </div>
   );

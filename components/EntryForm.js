@@ -20,6 +20,8 @@ export default function EntryForm({ initial, major }) {
   const [evidenceName, setEvidenceName] = useState(initial?.evidence_name ?? "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingMode, setSavingMode] = useState(null);
+  const [successMsg, setSuccessMsg] = useState("");
 
   const [workCategory, setWorkCategory] = useState(initial?.work_category ?? "main");
   const typeOptions = useMemo(() => getWorkTypeOptions(major, workCategory), [major, workCategory]);
@@ -35,10 +37,12 @@ export default function EntryForm({ initial, major }) {
     setWorkTypeOther("");
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e, mode = "done") {
     e.preventDefault();
     setError("");
+    setSuccessMsg("");
     setSaving(true);
+    setSavingMode(mode);
     try {
       const {
         data: { user },
@@ -67,21 +71,44 @@ export default function EntryForm({ initial, major }) {
           .eq("id", initial.id);
         if (error) throw error;
         router.push(`/entries/${initial.id}`);
-      } else {
-        const { data, error } = await supabase
-          .from("internship_entries")
-          .insert({ ...payload, student_id: user.id })
-          .select()
-          .single();
-        if (error) throw error;
-        router.push(`/entries/${data.id}`);
+        router.refresh();
+        return;
       }
-      router.refresh();
+
+      const { data, error } = await supabase
+        .from("internship_entries")
+        .insert({ ...payload, student_id: user.id })
+        .select()
+        .single();
+      if (error) throw error;
+
+      if (mode === "next") {
+        // เก็บสถานที่/ประเภทงานไว้เหมือนเดิม เลื่อนวันที่ไปวันถัดไป แล้วเคลียร์ช่องที่เหลือ เพื่อบันทึกกิจกรรมต่อเนื่องหลายวันได้เร็วขึ้น
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 1);
+        setDate(nextDate.toISOString().slice(0, 10));
+        setStartTime("");
+        setEndTime("");
+        setHours("");
+        setDescription("");
+        setSuccessMsg(`บันทึกวันที่ ${formatDateTh(payload.activity_date)} แล้ว (${payload.hours} ชม.) — กรอกรายการถัดไปได้เลย`);
+        setSaving(false);
+        setSavingMode(null);
+      } else {
+        router.push(`/entries/${data.id}`);
+        router.refresh();
+      }
     } catch (err) {
       setError(err.message);
-    } finally {
       setSaving(false);
+      setSavingMode(null);
     }
+  }
+
+  function formatDateTh(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
   }
 
   return (
@@ -129,7 +156,21 @@ export default function EntryForm({ initial, major }) {
           </Field>
         )}
 
-        {workCategory !== "volunteer" && workType === OTHER_VALUE && (
+        {workCategory !== "volunteer" && typeOptions.length === 0 && (
+          <Field label="ประเภทงาน">
+            <input
+              value={workTypeOther}
+              onChange={(e) => {
+                setWorkTypeOther(e.target.value);
+                setWorkType(OTHER_VALUE);
+              }}
+              placeholder="ระบุประเภทงานที่ทำ (ไม่พบสาขาวิชาของคุณในระบบ กรุณาระบุเอง หรือไปตั้งค่าสาขาวิชาที่หน้าโปรไฟล์ก่อน)"
+              className="input"
+            />
+          </Field>
+        )}
+
+        {workCategory !== "volunteer" && typeOptions.length > 0 && workType === OTHER_VALUE && (
           <Field label="ระบุประเภทงาน">
             <input
               required
@@ -179,15 +220,34 @@ export default function EntryForm({ initial, major }) {
           <input value={evidenceName} onChange={(e) => setEvidenceName(e.target.value)} placeholder="เช่น รายงานการฝึก_12ส.ค.pdf" className="input" />
         </Field>
 
+        {successMsg && <div className="text-primarydark text-sm bg-primarytint rounded-lg px-3 py-2">{successMsg}</div>}
         {error && <div className="text-danger text-sm bg-dangertint rounded-lg px-3 py-2">{error}</div>}
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="h-[52px] rounded-2xl bg-primary text-white font-semibold text-[15px] disabled:opacity-60 mt-1"
-        >
-          {saving ? "กำลังบันทึก..." : isEdit ? "บันทึกและส่งใหม่" : "ส่งบันทึก"}
-        </button>
+        {!isEdit && (
+          <div className="text-[12px] text-ink3 -mb-1">
+            กิจกรรมเดียวกันทำหลายวัน? ใช้ปุ่ม "บันทึกและเพิ่มวันถัดไป" เพื่อกรอกต่อได้เร็วขึ้น โดยไม่ต้องกรอกสถานที่/ประเภทงานซ้ำ
+          </div>
+        )}
+
+        <div className="flex flex-col gap-2 mt-1">
+          {!isEdit && (
+            <button
+              type="button"
+              onClick={(e) => handleSubmit(e, "next")}
+              disabled={saving}
+              className="h-[52px] rounded-2xl bg-surface border border-primary text-primary font-semibold text-[15px] disabled:opacity-60"
+            >
+              {saving && savingMode === "next" ? "กำลังบันทึก..." : "บันทึกและเพิ่มวันถัดไป"}
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={saving}
+            className="h-[52px] rounded-2xl bg-primary text-white font-semibold text-[15px] disabled:opacity-60"
+          >
+            {saving && savingMode !== "next" ? "กำลังบันทึก..." : isEdit ? "บันทึกและส่งใหม่" : "ส่งบันทึกและเสร็จสิ้น"}
+          </button>
+        </div>
       </form>
 
       <style jsx global>{`

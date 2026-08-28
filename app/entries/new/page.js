@@ -10,12 +10,12 @@ export default async function NewEntryPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("role, major").eq("id", user.id).single();
   if (!profile) redirect("/login");
 
   return (
     <AppFrame role={profile.role}>
-      <EntryForm />
+      <EntryForm major={profile.major} />
     </AppFrame>
   );
 }

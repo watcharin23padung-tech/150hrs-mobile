@@ -254,6 +254,16 @@ export default function LoginPage() {
         </button>
       </form>
 
+      <div className="text-center text-[11px] text-ink3 leading-relaxed pb-4">
+        พัฒนาโดย ดร.วัชชริน ผดุงรัชดากิจ
+        <br />
+        อาจารย์ประจำสาขาวิชาสื่อสารทางกีฬา
+        <br />
+        คณะวิทยาศาสตร์การกีฬา มหาวิทยาลัยบูรพา
+        <br />
+        พ.ศ. 2569
+      </div>
+
       <style jsx global>{`
         .input {
           height: 48px;

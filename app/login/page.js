@@ -83,13 +83,8 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex flex-col items-center gap-3 px-8 pt-14 pb-5">
-        <div className="w-16 h-16 rounded-[20px] bg-primary flex items-center justify-center">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="13" r="8" stroke="white" strokeWidth="1.8" />
-            <path d="M12 9v4l3 2" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M9 2h6M12 2v2" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.png" alt="Burapha University x Faculty of Sport Science" className="w-full max-w-[260px] h-auto" />
         <div className="flex flex-col items-center gap-1">
           <div className="font-head font-bold text-lg text-ink text-center leading-snug">
             ระบบการฝึกประสบการณ์ด้านบริการวิชาการแก่ชุมชน 150 ชั่วโมง

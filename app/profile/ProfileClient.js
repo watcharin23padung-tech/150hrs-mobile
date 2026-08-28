@@ -111,12 +111,14 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
             <input
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder={isStudent ? "เช่น ณิชา พงษ์ไพบูลย์" : "เช่น ดร.วัชชริน ผดุงรัชดากิจ"}
+              placeholder={isStudent ? "เช่น นางสาวณิชา พงษ์ไพบูลย์" : "เช่น ดร.วัชชริน ผดุงรัชดากิจ"}
               className="input"
             />
-            {!isStudent && (
-              <div className="text-[11.5px] text-ink3">กรุณาใส่คำนำหน้า เช่น ดร. ผศ. รศ. นำหน้าชื่อด้วย</div>
-            )}
+            <div className="text-[11.5px] text-ink3">
+              {isStudent
+                ? "กรุณาใส่คำนำหน้า นาย/นางสาว นำหน้าชื่อด้วย"
+                : "กรุณาใส่คำนำหน้า เช่น ดร. ผศ. รศ. นำหน้าชื่อด้วย"}
+            </div>
           </Field>
           {isStudent ? (
             <Field label="รหัสนิสิต">

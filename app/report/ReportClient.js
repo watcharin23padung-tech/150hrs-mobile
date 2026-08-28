@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { formatThaiDate } from "@/lib/status";
 import { MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { academicYearLabel, getAcademicYear, listAcademicYears } from "@/lib/academicYear";
 
 const SORTS = {
   progress_asc: { label: "คืบหน้าน้อยสุดก่อน", fn: (a, b) => a.percent - b.percent },
@@ -14,19 +15,42 @@ const SORTS = {
 export default function ReportClient({ students }) {
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState("progress_asc");
+  const [yearFilter, setYearFilter] = useState("all");
+
+  const academicYears = useMemo(
+    () => listAcademicYears(students.flatMap((s) => s.entries ?? [])),
+    [students]
+  );
+
+  // คำนวณชั่วโมงแยกภาระงานใหม่ตามปีการศึกษาที่เลือก (ไม่กระทบยอดสะสมรวม/percent ซึ่งนับตลอดหลักสูตร)
+  const studentsForYear = useMemo(() => {
+    if (yearFilter === "all") return students;
+    return students.map((s) => {
+      const approvedInYear = (s.entries ?? []).filter(
+        (e) => e.status === "approved" && getAcademicYear(e.activity_date) === yearFilter
+      );
+      const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
+      approvedInYear.forEach((e) => {
+        const cat = e.work_category ?? "main";
+        categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
+      });
+      const yearHours = approvedInYear.reduce((sum, e) => sum + Number(e.hours), 0);
+      return { ...s, categoryHours, yearHours };
+    });
+  }, [students, yearFilter]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = !q
-      ? students
-      : students.filter(
+      ? studentsForYear
+      : studentsForYear.filter(
           (s) =>
             s.fullName?.toLowerCase().includes(q) ||
             s.code?.toLowerCase().includes(q) ||
             s.major?.toLowerCase().includes(q)
         );
     return [...list].sort(SORTS[sortKey].fn);
-  }, [students, query, sortKey]);
+  }, [studentsForYear, query, sortKey]);
 
   const totalStudents = students.length;
   const avgPercent = totalStudents
@@ -48,6 +72,24 @@ export default function ReportClient({ students }) {
         <SummaryCard value={notStarted} label="ยังไม่เริ่มบันทึก" tone="danger" />
         <SummaryCard value={totalPending} label="รายการรอตรวจรวม" tone="accent" />
       </div>
+
+      {academicYears.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[13px] font-medium text-ink2">ดูชั่วโมงแยกภาระงานของปีการศึกษา</label>
+          <select
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
+            className="input"
+          >
+            <option value="all">ทุกปีการศึกษา (สะสมทั้งหมด)</option>
+            {academicYears.map((ay) => (
+              <option key={ay} value={ay}>
+                {academicYearLabel(ay)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex flex-col gap-2.5">
         <input
@@ -131,6 +173,9 @@ function StudentCard({ student }) {
           />
           <span className="text-[10.5px] text-ink3">รอง {student.categoryHours.secondary ?? 0} ชม.</span>
           <span className="text-[10.5px] text-ink3">จิตอาสา {student.categoryHours.volunteer ?? 0} ชม.</span>
+          {typeof student.yearHours === "number" && (
+            <span className="text-[10.5px] text-ink3 ml-auto">รวมปีนี้ {student.yearHours} ชม.</span>
+          )}
         </div>
       )}
     </div>

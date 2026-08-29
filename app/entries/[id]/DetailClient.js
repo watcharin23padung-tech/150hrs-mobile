@@ -51,10 +51,10 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
     router.refresh();
   }
 
-  const canReview = role === "teacher" && isAdvisor && entry.status === "pending";
+  const isStaff = role === "teacher" || role === "admin";
+  const canReview = isStaff && isAdvisor && entry.status === "pending";
   const canDelete =
-    (isOwner && (entry.status === "pending" || entry.status === "rejected")) ||
-    (role === "teacher" && isAdvisor);
+    (isOwner && (entry.status === "pending" || entry.status === "rejected")) || (isStaff && isAdvisor);
 
   return (
     <div className="flex flex-col h-full">
@@ -79,7 +79,7 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
               {entry.start_time && entry.end_time ? ` · ${entry.start_time.slice(0, 5)} - ${entry.end_time.slice(0, 5)} น.` : ""}
             </div>
             <div>รวม {entry.hours} ชั่วโมง</div>
-            {role === "teacher" && (
+            {isStaff && (
               <div>
                 {entry.profiles?.full_name} {entry.profiles?.code ? `· ${entry.profiles.code}` : ""}
               </div>

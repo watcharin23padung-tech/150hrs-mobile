@@ -29,11 +29,23 @@ export default async function ReportPage() {
     );
   }
 
-  const { data: advisees } = await supabase
+  const isAdmin = profile.role === "admin";
+
+  const adviseesQuery = supabase
     .from("profiles")
-    .select("id, full_name, code, major, year_level, target_hours, completion_certified_at")
-    .eq("advisor_id", user.id)
+    .select("id, full_name, code, major, year_level, target_hours, completion_certified_at, advisor_id")
     .order("full_name");
+
+  const { data: advisees } = isAdmin
+    ? await adviseesQuery.eq("role", "student")
+    : await adviseesQuery.eq("advisor_id", user.id);
+
+  let teachers = [];
+  if (isAdmin) {
+    const { data: teacherList } = await supabase.rpc("list_teachers");
+    teachers = teacherList ?? [];
+  }
+  const teacherNameById = Object.fromEntries(teachers.map((t) => [t.id, t.full_name]));
 
   const adviseeIds = (advisees ?? []).map((a) => a.id);
 
@@ -89,12 +101,14 @@ export default async function ReportPage() {
       entries,
       eligible,
       certifiedAt: a.completion_certified_at ?? null,
+      advisorId: a.advisor_id ?? null,
+      advisorName: a.advisor_id ? teacherNameById[a.advisor_id] ?? null : null,
     };
   });
 
   return (
     <AppFrame role={profile.role}>
-      <ReportClient students={students} />
+      <ReportClient students={students} isAdmin={isAdmin} teachers={teachers} />
     </AppFrame>
   );
 }

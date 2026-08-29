@@ -22,7 +22,7 @@ export default async function EntryDetailPage({ params }) {
   if (!entry) notFound();
 
   const isOwner = entry.student_id === user.id;
-  const isAdvisor = profile.role === "teacher";
+  const isAdvisor = profile.role === "teacher" || profile.role === "admin";
 
   return (
     <AppFrame role={profile.role}>

@@ -171,6 +171,79 @@ export default async function HomePage() {
     );
   }
 
+  if (profile.role === "admin") {
+    const { count: studentCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "student");
+    const { count: teacherCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "teacher");
+    const { count: unassignedCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "student")
+      .is("advisor_id", null);
+    const { count: pendingCount } = await supabase
+      .from("internship_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+    const { data: pendingAll } = await supabase
+      .from("internship_entries")
+      .select("*, profiles!internship_entries_student_id_fkey(full_name,code)")
+      .eq("status", "pending")
+      .order("submitted_at", { ascending: false })
+      .limit(8);
+
+    return (
+      <AppFrame role={profile.role}>
+        <div className="flex flex-col gap-5 p-5 pb-8">
+          <div className="flex flex-col gap-0.5">
+            <div className="text-[13px] text-ink3">ผู้ดูแลระบบ</div>
+            <div className="font-head font-bold text-xl text-ink">{profile.full_name}</div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="bg-primary rounded-2xl p-4 flex flex-col gap-1">
+              <div className="font-head font-bold text-2xl text-white">{studentCount ?? 0}</div>
+              <div className="text-xs text-white/85">นิสิตทั้งหมด</div>
+            </div>
+            <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col gap-1">
+              <div className="font-head font-bold text-2xl text-ink">{teacherCount ?? 0}</div>
+              <div className="text-xs text-ink3">อาจารย์ทั้งหมด</div>
+            </div>
+            <div className="bg-accenttint rounded-2xl p-4 flex flex-col gap-1">
+              <div className="font-head font-bold text-2xl text-[oklch(45%_0.14_70)]">{pendingCount ?? 0}</div>
+              <div className="text-xs text-[oklch(45%_0.1_70)]">รายการรอตรวจทั้งหมด</div>
+            </div>
+            <div className="bg-dangertint rounded-2xl p-4 flex flex-col gap-1">
+              <div className="font-head font-bold text-2xl text-danger">{unassignedCount ?? 0}</div>
+              <div className="text-xs text-danger">นิสิตยังไม่มีอาจารย์ที่ปรึกษา</div>
+            </div>
+          </div>
+
+          <Link
+            href="/report"
+            className="h-11 rounded-xl bg-primary text-white font-semibold text-sm flex items-center justify-center"
+          >
+            ดูรายงานนิสิตทั้งหมด / จัดการอาจารย์ที่ปรึกษา
+          </Link>
+
+          <div className="flex flex-col gap-2.5">
+            <div className="font-head font-semibold text-[15px] text-ink">รายการรอตรวจสอบล่าสุด</div>
+
+            {pendingAll?.length === 0 || !pendingAll ? (
+              <EmptyState text="ไม่มีรายการรอตรวจสอบในตอนนี้" />
+            ) : (
+              pendingAll.map((e) => <EntryRow key={e.id} entry={e} showStudent />)
+            )}
+          </div>
+        </div>
+      </AppFrame>
+    );
+  }
+
   // Teacher view
   const { data: advisees } = await supabase.from("profiles").select("id").eq("advisor_id", user.id);
   const adviseeIds = (advisees ?? []).map((a) => a.id);

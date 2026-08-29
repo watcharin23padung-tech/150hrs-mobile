@@ -38,8 +38,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (mode === "signup" && !/@go\.buu\.ac\.th$/i.test(email.trim())) {
-      setError("กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น");
+    if (mode === "signup" && !/@(go\.)?buu\.ac\.th$/i.test(email.trim())) {
+      setError("กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th หรือ @buu.ac.th เท่านั้น");
       return;
     }
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
         err.message === "Invalid login credentials"
           ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
           : /go\.buu\.ac\.th/i.test(err.message)
-          ? "กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น"
+          ? "กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th หรือ @buu.ac.th เท่านั้น"
           : err.message;
       setError(msg);
     } finally {
@@ -228,7 +228,7 @@ export default function LoginPage() {
             className="input"
           />
           {mode === "signup" && (
-            <div className="text-[11.5px] text-ink3">ใช้ได้เฉพาะอีเมลที่ลงท้ายด้วย @go.buu.ac.th เท่านั้น</div>
+            <div className="text-[11.5px] text-ink3">ใช้ได้เฉพาะอีเมลที่ลงท้ายด้วย @go.buu.ac.th หรือ @buu.ac.th เท่านั้น</div>
           )}
         </Field>
         <Field label="รหัสผ่าน">

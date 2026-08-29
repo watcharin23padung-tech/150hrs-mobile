@@ -15,7 +15,7 @@ const SORTS = {
   pending: { label: "รออนุมัติมากสุดก่อน", fn: (a, b) => b.pendingCount - a.pendingCount },
 };
 
-export default function ReportClient({ students }) {
+export default function ReportClient({ students, isAdmin = false, teachers = [] }) {
   const router = useRouter();
   const supabase = createClient();
   const [query, setQuery] = useState("");
@@ -23,6 +23,15 @@ export default function ReportClient({ students }) {
   const [yearFilter, setYearFilter] = useState("all");
   const [certifyingId, setCertifyingId] = useState(null);
   const [certifyError, setCertifyError] = useState("");
+
+  const [reassigningId, setReassigningId] = useState(null);
+
+  async function handleReassign(studentId, advisorId) {
+    setReassigningId(studentId);
+    await supabase.from("profiles").update({ advisor_id: advisorId || null }).eq("id", studentId);
+    setReassigningId(null);
+    router.refresh();
+  }
 
   async function handleCertify(studentId) {
     setCertifyingId(studentId);
@@ -144,14 +153,23 @@ export default function ReportClient({ students }) {
         )}
 
         {filtered.map((s) => (
-          <StudentCard key={s.id} student={s} onCertify={handleCertify} certifying={certifyingId === s.id} />
+          <StudentCard
+            key={s.id}
+            student={s}
+            onCertify={handleCertify}
+            certifying={certifyingId === s.id}
+            isAdmin={isAdmin}
+            teachers={teachers}
+            onReassign={handleReassign}
+            reassigning={reassigningId === s.id}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function StudentCard({ student, onCertify, certifying }) {
+function StudentCard({ student, onCertify, certifying, isAdmin, teachers, onReassign, reassigning }) {
   const barTone =
     student.percent >= 100 ? "bg-primary" : student.percent === 0 ? "bg-danger" : "bg-primary";
 
@@ -199,6 +217,25 @@ function StudentCard({ student, onCertify, certifying }) {
           {typeof student.yearHours === "number" && (
             <span className="text-[10.5px] text-ink3 ml-auto">รวมปีนี้ {student.yearHours} ชม.</span>
           )}
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="flex items-center gap-2 pt-0.5">
+          <span className="text-[11px] text-ink3 flex-shrink-0">อาจารย์ที่ปรึกษา:</span>
+          <select
+            value={student.advisorId ?? ""}
+            disabled={reassigning}
+            onChange={(e) => onReassign?.(student.id, e.target.value || null)}
+            className="flex-grow h-8 rounded-lg border border-border bg-white text-[11.5px] px-2 disabled:opacity-60"
+          >
+            <option value="">-- ยังไม่ได้เลือก --</option>
+            {teachers.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.full_name}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

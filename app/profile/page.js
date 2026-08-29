@@ -25,6 +25,20 @@ export default async function ProfilePage() {
 
     const { data: teacherList } = await supabase.rpc("list_teachers");
     teachers = teacherList ?? [];
+  } else if (profile.role === "admin") {
+    const { count: studentCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "student");
+    const { count: teacherCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "teacher");
+    const { count: adviseeCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("advisor_id", user.id);
+    stats = { studentCount: studentCount ?? 0, teacherCount: teacherCount ?? 0, adviseeCount: adviseeCount ?? 0 };
   } else {
     const { count } = await supabase.from("profiles").select("id", { count: "exact", head: true }).eq("advisor_id", user.id);
     stats = { adviseeCount: count ?? 0 };

@@ -18,6 +18,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const [advisorId, setAdvisorId] = useState(profile.advisor_id ?? "");
   const [savingAdvisor, setSavingAdvisor] = useState(false);
   const isStudent = profile.role === "student";
+  const isAdmin = profile.role === "admin";
   const initials = profile.full_name?.slice(0, 2) ?? "?";
   const currentAdvisorName = teachers.find((t) => t.id === profile.advisor_id)?.full_name;
 
@@ -254,6 +255,15 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
             {currentAdvisorName && (
               <div className="text-[11.5px] text-ink3">อาจารย์ที่ปรึกษาปัจจุบัน: {currentAdvisorName}</div>
             )}
+          </div>
+        </div>
+      ) : isAdmin ? (
+        <div className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3">
+          <div className="text-[13px] font-semibold text-ink">ภาพรวมระบบ (ผู้ดูแลระบบ)</div>
+          <div className="grid grid-cols-3 gap-2">
+            <MiniStat value={stats.studentCount} label="นิสิตทั้งหมด" />
+            <MiniStat value={stats.teacherCount} label="อาจารย์ทั้งหมด" />
+            <MiniStat value={stats.adviseeCount} label="นิสิตในความดูแล" />
           </div>
         </div>
       ) : (

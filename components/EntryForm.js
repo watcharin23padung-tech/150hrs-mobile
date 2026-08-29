@@ -18,6 +18,9 @@ export default function EntryForm({ initial, major }) {
   const [description, setDescription] = useState(initial?.description ?? "");
   const [evidenceUrl, setEvidenceUrl] = useState(initial?.evidence_url ?? "");
   const [evidenceName, setEvidenceName] = useState(initial?.evidence_name ?? "");
+  const [supervisorName, setSupervisorName] = useState(initial?.supervisor_name ?? "");
+  const [supervisorPosition, setSupervisorPosition] = useState(initial?.supervisor_position ?? "");
+  const [supervisorEvidenceUrl, setSupervisorEvidenceUrl] = useState(initial?.supervisor_evidence_url ?? "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [savingMode, setSavingMode] = useState(null);
@@ -60,6 +63,9 @@ export default function EntryForm({ initial, major }) {
         description: description || null,
         evidence_url: evidenceUrl || null,
         evidence_name: evidenceName || null,
+        supervisor_name: supervisorName || null,
+        supervisor_position: supervisorPosition || null,
+        supervisor_evidence_url: supervisorEvidenceUrl || null,
         work_category: workCategory,
         work_type: resolvedWorkType,
       };
@@ -218,6 +224,37 @@ export default function EntryForm({ initial, major }) {
         </Field>
         <Field label="ชื่อไฟล์หลักฐาน (ถ้ามี)">
           <input value={evidenceName} onChange={(e) => setEvidenceName(e.target.value)} placeholder="เช่น รายงานการฝึก_12ส.ค.pdf" className="input" />
+        </Field>
+
+        <div className="h-px bg-border my-1" />
+        <div className="text-[13px] font-semibold text-ink -mb-1">การรับรองจากผู้รับผิดชอบโครงการ</div>
+        <div className="text-[11.5px] text-ink3 -mb-1">
+          กรอกข้อมูลผู้ดูแล/รับผิดชอบกิจกรรมที่หน่วยงาน พร้อมแนบหลักฐานการรับรอง (เช่น รูปใบเซ็นรับรอง) เพื่อประกอบการพิจารณาของอาจารย์ที่ปรึกษา (ไม่บังคับ)
+        </div>
+        <Field label="ชื่อผู้รับผิดชอบโครงการ">
+          <input
+            value={supervisorName}
+            onChange={(e) => setSupervisorName(e.target.value)}
+            placeholder="เช่น ครูสมชาย ใจดี"
+            className="input"
+          />
+        </Field>
+        <Field label="ตำแหน่ง/หน่วยงาน">
+          <input
+            value={supervisorPosition}
+            onChange={(e) => setSupervisorPosition(e.target.value)}
+            placeholder="เช่น ครูพลศึกษา โรงเรียนสาธิตฯ"
+            className="input"
+          />
+        </Field>
+        <Field label="ลิงก์หลักฐานการรับรองจาก Google Drive">
+          <input
+            type="url"
+            value={supervisorEvidenceUrl}
+            onChange={(e) => setSupervisorEvidenceUrl(e.target.value)}
+            placeholder="https://drive.google.com/..."
+            className="input"
+          />
         </Field>
 
         {successMsg && <div className="text-primarydark text-sm bg-primarytint rounded-lg px-3 py-2">{successMsg}</div>}

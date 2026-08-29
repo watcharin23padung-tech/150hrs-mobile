@@ -127,6 +127,32 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
           </div>
         )}
 
+        {(entry.supervisor_name || entry.supervisor_evidence_url) && (
+          <div className="flex flex-col gap-2">
+            <div className="font-head font-semibold text-sm text-ink">การรับรองจากผู้รับผิดชอบโครงการ</div>
+            <div className="bg-surface border border-border rounded-2xl p-3.5 flex flex-col gap-1.5">
+              {entry.supervisor_name && (
+                <div className="text-[13.5px] text-ink">
+                  {entry.supervisor_name}
+                  {entry.supervisor_position ? ` · ${entry.supervisor_position}` : ""}
+                </div>
+              )}
+              {entry.supervisor_evidence_url ? (
+                <a
+                  href={entry.supervisor_evidence_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[12.5px] font-semibold text-primarydark underline"
+                >
+                  เปิดหลักฐานการรับรอง
+                </a>
+              ) : (
+                <div className="text-[11.5px] text-ink3">ยังไม่มีลิงก์หลักฐานการรับรองแนบมา</div>
+              )}
+            </div>
+          </div>
+        )}
+
         {isAdvisor && (
           <div className="flex flex-col gap-2">
             <div className="font-head font-semibold text-sm text-ink">ความคิดเห็นถึงนิสิต (ถ้ามี)</div>

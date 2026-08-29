@@ -193,6 +193,9 @@ export default function StudentReportClient({ profile, entries }) {
                 <span>{e.work_type || CATEGORY_META[e.work_category ?? "main"].label}</span>
                 <span>{formatThaiDate(e.activity_date)}</span>
               </div>
+              {e.supervisor_name && (
+                <div className="text-[11px] text-ink3">รับรองโดย {e.supervisor_name}</div>
+              )}
             </Link>
           ))}
         </div>

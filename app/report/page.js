@@ -18,7 +18,9 @@ export default async function ReportPage() {
   if (profile.role === "student") {
     const { data: entries } = await supabase
       .from("internship_entries")
-      .select("id, place, hours, status, activity_date, reviewer_comment, submitted_at, work_category, work_type")
+      .select(
+        "id, place, hours, status, activity_date, reviewer_comment, submitted_at, work_category, work_type, supervisor_name"
+      )
       .eq("student_id", user.id)
       .order("activity_date", { ascending: false });
 

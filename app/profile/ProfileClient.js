@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import SignaturePad from "@/components/SignaturePad";
 
 const MAJORS = [
   "สาขาวิชาสื่อสารทางกีฬา",
@@ -28,6 +29,22 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const [major, setMajor] = useState(profile.major ?? "");
   const [yearLevel, setYearLevel] = useState(profile.year_level ?? "");
   const [contactEmail, setContactEmail] = useState(profile.phone ?? "");
+
+  const [signatureData, setSignatureData] = useState(profile.signature_data ?? "");
+  const [savingSignature, setSavingSignature] = useState(false);
+  const [signatureMsg, setSignatureMsg] = useState("");
+
+  async function saveSignature() {
+    setSavingSignature(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ signature_data: signatureData || null })
+      .eq("id", profile.id);
+    setSavingSignature(false);
+    setSignatureMsg(error ? "บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง" : "บันทึกลายเซ็นแล้ว");
+    setTimeout(() => setSignatureMsg(""), 2000);
+    router.refresh();
+  }
 
   async function toggleNotif() {
     const next = !notifOn;
@@ -246,6 +263,27 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
             <div className="text-xs text-ink3">รายวิชาฝึกประสบการณ์</div>
           </div>
           <div className="font-head font-bold text-[22px] text-primary">{stats.adviseeCount}</div>
+        </div>
+      )}
+
+      {!isStudent && (
+        <div className="flex flex-col gap-1.5">
+          <div className="text-[12.5px] font-semibold text-ink3 px-1">ลายเซ็นสำหรับรับรองเอกสาร</div>
+          <div className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3">
+            <div className="text-[12px] text-ink3 leading-relaxed">
+              ใช้แสดงในเอกสารรับรองผลการฝึกฯ เมื่อคุณรับรองนิสิตที่สะสมชั่วโมงครบเกณฑ์แล้ว เลือกวาดลายเซ็นหรืออัปโหลดไฟล์ภาพก็ได้
+            </div>
+            <SignaturePad value={signatureData} onChange={setSignatureData} />
+            {signatureMsg && <div className="text-[12px] text-primarydark font-medium">{signatureMsg}</div>}
+            <button
+              type="button"
+              disabled={savingSignature}
+              onClick={saveSignature}
+              className="h-11 rounded-xl bg-primary text-white font-semibold text-[13px] disabled:opacity-60"
+            >
+              {savingSignature ? "กำลังบันทึก..." : "บันทึกลายเซ็น"}
+            </button>
+          </div>
         </div>
       )}
 

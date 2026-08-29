@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ReportClient from "./ReportClient";
 import StudentReportClient from "./StudentReportClient";
 import AppFrame from "@/components/AppFrame";
+import { MIN_MAIN_HOURS } from "@/lib/workCategories";
 
 export default async function ReportPage() {
   const supabase = createClient();
@@ -30,7 +31,7 @@ export default async function ReportPage() {
 
   const { data: advisees } = await supabase
     .from("profiles")
-    .select("id, full_name, code, major, year_level, target_hours")
+    .select("id, full_name, code, major, year_level, target_hours, completion_certified_at")
     .eq("advisor_id", user.id)
     .order("full_name");
 
@@ -69,6 +70,8 @@ export default async function ReportPage() {
       categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
     });
 
+    const eligible = approvedHours >= target && (categoryHours.main ?? 0) >= MIN_MAIN_HOURS;
+
     return {
       id: a.id,
       fullName: a.full_name,
@@ -83,6 +86,9 @@ export default async function ReportPage() {
       rejectedCount,
       lastActivity: lastActivity ?? null,
       categoryHours,
+      entries,
+      eligible,
+      certifiedAt: a.completion_certified_at ?? null,
     };
   });
 

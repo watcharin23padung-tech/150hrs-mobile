@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { formatThaiDate } from "@/lib/status";
 import { MIN_MAIN_HOURS } from "@/lib/workCategories";
 import { academicYearLabel, getAcademicYear, listAcademicYears } from "@/lib/academicYear";
@@ -13,9 +16,25 @@ const SORTS = {
 };
 
 export default function ReportClient({ students }) {
+  const router = useRouter();
+  const supabase = createClient();
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState("progress_asc");
   const [yearFilter, setYearFilter] = useState("all");
+  const [certifyingId, setCertifyingId] = useState(null);
+  const [certifyError, setCertifyError] = useState("");
+
+  async function handleCertify(studentId) {
+    setCertifyingId(studentId);
+    setCertifyError("");
+    const { error } = await supabase.rpc("certify_completion", { p_student_id: studentId });
+    setCertifyingId(null);
+    if (error) {
+      setCertifyError(error.message);
+      return;
+    }
+    router.refresh();
+  }
 
   const academicYears = useMemo(
     () => listAcademicYears(students.flatMap((s) => s.entries ?? [])),
@@ -113,6 +132,10 @@ export default function ReportClient({ students }) {
         </div>
       </div>
 
+      {certifyError && (
+        <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{certifyError}</div>
+      )}
+
       <div className="flex flex-col gap-2.5">
         {filtered.length === 0 && (
           <div className="text-[13px] text-ink3 bg-surfacealt rounded-2xl py-8 text-center">
@@ -121,14 +144,14 @@ export default function ReportClient({ students }) {
         )}
 
         {filtered.map((s) => (
-          <StudentCard key={s.id} student={s} />
+          <StudentCard key={s.id} student={s} onCertify={handleCertify} certifying={certifyingId === s.id} />
         ))}
       </div>
     </div>
   );
 }
 
-function StudentCard({ student }) {
+function StudentCard({ student, onCertify, certifying }) {
   const barTone =
     student.percent >= 100 ? "bg-primary" : student.percent === 0 ? "bg-danger" : "bg-primary";
 
@@ -175,6 +198,27 @@ function StudentCard({ student }) {
           <span className="text-[10.5px] text-ink3">จิตอาสา {student.categoryHours.volunteer ?? 0} ชม.</span>
           {typeof student.yearHours === "number" && (
             <span className="text-[10.5px] text-ink3 ml-auto">รวมปีนี้ {student.yearHours} ชม.</span>
+          )}
+        </div>
+      )}
+
+      {student.eligible && (
+        <div className="pt-0.5">
+          {student.certifiedAt ? (
+            <div className="flex items-center justify-between gap-2 bg-[oklch(90%_0.12_95)] rounded-xl px-3 py-2">
+              <span className="text-[11.5px] font-semibold text-[oklch(35%_0.1_70)]">🏆 ครบเกณฑ์ · รับรองแล้ว</span>
+              <Link href={`/certificate/${student.id}`} className="text-[11.5px] font-semibold text-primarydark underline">
+                ดูเอกสาร
+              </Link>
+            </div>
+          ) : (
+            <button
+              onClick={() => onCertify?.(student.id)}
+              disabled={certifying}
+              className="w-full h-10 rounded-xl bg-primary text-white font-semibold text-[12.5px] disabled:opacity-60"
+            >
+              {certifying ? "กำลังรับรอง..." : "🏆 รับรองผลการฝึกฯ ครบเกณฑ์แล้ว"}
+            </button>
           )}
         </div>
       )}

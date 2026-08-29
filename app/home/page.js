@@ -100,6 +100,38 @@ export default async function HomePage() {
           </div>
         </div>
 
+        {profile.completion_certified_at ? (
+          <div className="bg-[oklch(88%_0.14_95)] border border-[oklch(72%_0.15_90)] rounded-2xl p-4 flex items-center gap-3">
+            <div className="text-2xl flex-shrink-0">🏆</div>
+            <div className="flex flex-col gap-0.5 flex-grow min-w-0">
+              <div className="font-head font-bold text-[13.5px] text-[oklch(32%_0.1_70)]">
+                ฝึกประสบการณ์ครบตามเกณฑ์แล้ว
+              </div>
+              <div className="text-[11.5px] text-[oklch(40%_0.08_70)] leading-snug">
+                อาจารย์ที่ปรึกษารับรองผลแล้ว พิมพ์เอกสารรับรองได้เลย
+              </div>
+            </div>
+            <Link
+              href={`/certificate/${profile.id}`}
+              className="flex-shrink-0 text-[11.5px] font-semibold text-primarydark bg-primarytint px-3 py-2 rounded-full whitespace-nowrap"
+            >
+              พิมพ์เอกสาร
+            </Link>
+          </div>
+        ) : profile.completion_notified_at ? (
+          <div className="bg-accenttint rounded-2xl p-4 flex items-center gap-3">
+            <div className="text-2xl flex-shrink-0">⏳</div>
+            <div className="flex flex-col gap-0.5">
+              <div className="font-head font-bold text-[13.5px] text-[oklch(45%_0.14_70)]">
+                สะสมชั่วโมงครบตามเกณฑ์แล้ว
+              </div>
+              <div className="text-[11.5px] text-[oklch(45%_0.1_70)] leading-snug">
+                รอการรับรองผลจากอาจารย์ที่ปรึกษา
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-3 gap-2.5">
           <StatCard value={total} label="บันทึกทั้งหมด" />
           <StatCard value={pendingCount} label="รออนุมัติ" tone="accent" />

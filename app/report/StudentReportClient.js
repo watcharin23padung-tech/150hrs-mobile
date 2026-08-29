@@ -21,6 +21,11 @@ export default function StudentReportClient({ profile, entries }) {
   const approvedHours = approved.reduce((s, e) => s + Number(e.hours), 0);
   const percent = Math.min(100, Math.round((approvedHours / target) * 100));
   const remaining = Math.max(0, target - approvedHours);
+  const mainHoursTotal = approved.reduce(
+    (s, e) => s + ((e.work_category ?? "main") === "main" ? Number(e.hours) : 0),
+    0
+  );
+  const eligible = approvedHours >= target && mainHoursTotal >= MIN_MAIN_HOURS;
 
   // รายการที่กรองตามปีการศึกษา (ใช้กับสรุปแยกภาระงาน, รายการ, และกราฟรายเดือน — ไม่กระทบวงกลมสรุปสะสมรวมด้านบน)
   const yearEntries = useMemo(
@@ -85,6 +90,38 @@ export default function StudentReportClient({ profile, entries }) {
           <div className="text-xs text-white/85">เหลืออีก {remaining} ชั่วโมง</div>
         </div>
       </div>
+
+      {profile.completion_certified_at ? (
+        <div className="bg-[oklch(88%_0.14_95)] border border-[oklch(72%_0.15_90)] rounded-2xl p-4 flex items-center gap-3">
+          <div className="text-2xl flex-shrink-0">🏆</div>
+          <div className="flex flex-col gap-0.5 flex-grow min-w-0">
+            <div className="font-head font-bold text-[13.5px] text-[oklch(32%_0.1_70)]">
+              ฝึกประสบการณ์ครบตามเกณฑ์แล้ว
+            </div>
+            <div className="text-[11.5px] text-[oklch(40%_0.08_70)] leading-snug">
+              รับรองผลเมื่อ {formatThaiDate(profile.completion_certified_at)}
+            </div>
+          </div>
+          <Link
+            href={`/certificate/${profile.id}`}
+            className="flex-shrink-0 text-[11.5px] font-semibold text-primarydark bg-primarytint px-3 py-2 rounded-full whitespace-nowrap"
+          >
+            พิมพ์เอกสาร
+          </Link>
+        </div>
+      ) : eligible ? (
+        <div className="bg-accenttint rounded-2xl p-4 flex items-center gap-3">
+          <div className="text-2xl flex-shrink-0">⏳</div>
+          <div className="flex flex-col gap-0.5">
+            <div className="font-head font-bold text-[13.5px] text-[oklch(45%_0.14_70)]">
+              สะสมชั่วโมงครบตามเกณฑ์แล้ว
+            </div>
+            <div className="text-[11.5px] text-[oklch(45%_0.1_70)] leading-snug">
+              รอการรับรองผลจากอาจารย์ที่ปรึกษา
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-3 gap-2.5">
         <StatCard value={entries.length} label="บันทึกทั้งหมด" />

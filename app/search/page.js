@@ -21,6 +21,13 @@ export default async function SearchPage() {
       .eq("student_id", user.id)
       .order("activity_date", { ascending: false });
     entries = data ?? [];
+  } else if (profile.role === "admin") {
+    const { data } = await supabase
+      .from("internship_entries")
+      .select("*, profiles!internship_entries_student_id_fkey(full_name,code)")
+      .order("activity_date", { ascending: false })
+      .limit(500);
+    entries = data ?? [];
   } else {
     const { data: advisees } = await supabase.from("profiles").select("id").eq("advisor_id", user.id);
     const adviseeIds = (advisees ?? []).map((a) => a.id);

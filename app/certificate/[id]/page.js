@@ -24,24 +24,6 @@ export default async function CertificatePage({ params }) {
   const isAdvisor = student.advisor_id === user.id;
   if (!isSelf && !isAdvisor) notFound();
 
-  if (!student.completion_certified_at) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen gap-2 p-8 text-center">
-        <div className="text-3xl">⏳</div>
-        <div className="font-head font-bold text-ink">ยังไม่สามารถออกเอกสารรับรองได้</div>
-        <div className="text-[13px] text-ink3">นิสิตยังไม่ได้รับการรับรองผลจากอาจารย์ที่ปรึกษา</div>
-      </div>
-    );
-  }
-
-  const { data: advisor } = student.advisor_id
-    ? await supabase
-        .from("profiles")
-        .select("full_name, major, signature_data")
-        .eq("id", student.advisor_id)
-        .single()
-    : { data: null };
-
   const { data: entries } = await supabase
     .from("internship_entries")
     .select("hours, work_category")
@@ -54,6 +36,39 @@ export default async function CertificatePage({ params }) {
     categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
   });
   const totalHours = (entries ?? []).reduce((s, e) => s + Number(e.hours), 0);
+  const target = Number(student.target_hours) || 150;
+  const eligible = totalHours >= target && (categoryHours.main ?? 0) >= MIN_MAIN_HOURS;
+
+  if (!student.completion_certified_at) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-2 p-8 text-center">
+        <div className="text-3xl">⏳</div>
+        <div className="font-head font-bold text-ink">ยังไม่สามารถออกเอกสารรับรองได้</div>
+        <div className="text-[13px] text-ink3">นิสิตยังไม่ได้รับการรับรองผลจากอาจารย์ที่ปรึกษา</div>
+      </div>
+    );
+  }
+
+  // ป้องกันเอกสารหลุดออกไปโดยข้อมูลไม่ตรงกับความเป็นจริง เช่น มีการแก้ไข/ลบรายการหลังรับรองแล้ว
+  if (!eligible) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-2 p-8 text-center">
+        <div className="text-3xl">⚠️</div>
+        <div className="font-head font-bold text-ink">เอกสารรับรองถูกระงับชั่วคราว</div>
+        <div className="text-[13px] text-ink3 max-w-xs">
+          ข้อมูลชั่วโมงของนิสิตมีการเปลี่ยนแปลงหลังการรับรองผล กรุณาให้อาจารย์ที่ปรึกษาตรวจสอบและรับรองผลอีกครั้ง
+        </div>
+      </div>
+    );
+  }
+
+  const { data: advisor } = student.advisor_id
+    ? await supabase
+        .from("profiles")
+        .select("full_name, major, signature_data")
+        .eq("id", student.advisor_id)
+        .single()
+    : { data: null };
 
   return (
     <CertificateClient

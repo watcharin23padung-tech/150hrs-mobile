@@ -12,6 +12,8 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
   const [comment, setComment] = useState(entry.reviewer_comment ?? "");
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function review(status) {
     setSaving(true);
@@ -41,7 +43,18 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  async function deleteEntry() {
+    setDeleting(true);
+    await supabase.from("internship_entries").delete().eq("id", entry.id);
+    setDeleting(false);
+    router.push("/report");
+    router.refresh();
+  }
+
   const canReview = role === "teacher" && isAdvisor && entry.status === "pending";
+  const canDelete =
+    (isOwner && (entry.status === "pending" || entry.status === "rejected")) ||
+    (role === "teacher" && isAdvisor);
 
   return (
     <div className="flex flex-col h-full">
@@ -130,6 +143,41 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
           <div className="bg-dangertint rounded-2xl p-3.5 flex flex-col gap-1">
             <div className="text-[12.5px] font-semibold text-danger">ความคิดเห็นจากอาจารย์</div>
             <div className="text-[13px] leading-snug text-[oklch(35%_0.1_25)]">{entry.reviewer_comment}</div>
+          </div>
+        )}
+
+        {canDelete && (
+          <div className="flex flex-col gap-2">
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="h-11 rounded-xl border border-danger text-danger font-semibold text-[13px]"
+              >
+                ลบรายการนี้
+              </button>
+            ) : (
+              <div className="bg-dangertint rounded-2xl p-3.5 flex flex-col gap-3">
+                <div className="text-[13px] text-[oklch(35%_0.1_25)]">
+                  ยืนยันการลบรายการนี้ใช่หรือไม่? เมื่อลบแล้วจะไม่สามารถกู้คืนได้
+                </div>
+                <div className="flex gap-2.5">
+                  <button
+                    disabled={deleting}
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 h-11 rounded-xl border border-border bg-white text-ink2 font-semibold text-[13px] disabled:opacity-60"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    disabled={deleting}
+                    onClick={deleteEntry}
+                    className="flex-1 h-11 rounded-xl bg-danger text-white font-semibold text-[13px] disabled:opacity-60"
+                  >
+                    {deleting ? "กำลังลบ..." : "ยืนยันลบ"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

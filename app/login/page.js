@@ -22,7 +22,6 @@ export default function LoginPage() {
   const [yearLevel, setYearLevel] = useState("");
   const [advisorId, setAdvisorId] = useState("");
   const [teachers, setTeachers] = useState([]);
-  const [contactEmail, setContactEmail] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,12 +54,11 @@ export default function LoginPage() {
           options: { data: { role, full_name: fullName.trim() } },
         });
         if (error) throw error;
-        if (data.user && (code || major || yearLevel || contactEmail || (role === "student" && advisorId))) {
+        if (data.user && (code || major || yearLevel || (role === "student" && advisorId))) {
           const updates = {};
           if (role === "student" && code) updates.code = code;
           if (major) updates.major = major;
           if (role === "student" && yearLevel) updates.year_level = Number(yearLevel);
-          if (contactEmail) updates.phone = contactEmail;
           if (role === "student" && advisorId) updates.advisor_id = advisorId;
           await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
@@ -194,15 +192,6 @@ export default function LoginPage() {
                 </select>
               </Field>
             )}
-            <Field label="อีเมลติดต่อ">
-              <input
-                type="email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
-                placeholder="เช่น name@example.com"
-                className="input"
-              />
-            </Field>
             {role === "student" && (
               <Field label="อาจารย์ที่ปรึกษา">
                 <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">

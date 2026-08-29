@@ -111,7 +111,7 @@ export default function LoginPage() {
               mode === "signup" ? "bg-white text-primary shadow-sm" : "text-ink2"
             }`}
           >
-            สมัครสมาชิก
+            ลงทะเบียนใช้งาน
           </button>
         </div>
 
@@ -250,7 +250,7 @@ export default function LoginPage() {
           disabled={loading}
           className="h-[52px] rounded-2xl bg-primary text-white font-semibold text-[15px] disabled:opacity-60"
         >
-          {loading ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
+          {loading ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ระบบ" : "ลงทะเบียนใช้งาน"}
         </button>
       </form>
 

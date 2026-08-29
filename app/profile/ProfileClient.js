@@ -29,7 +29,6 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const [code, setCode] = useState(profile.code ?? "");
   const [major, setMajor] = useState(profile.major ?? "");
   const [yearLevel, setYearLevel] = useState(profile.year_level ?? "");
-  const [contactEmail, setContactEmail] = useState(profile.phone ?? "");
 
   const [signatureData, setSignatureData] = useState(profile.signature_data ?? "");
   const [savingSignature, setSavingSignature] = useState(false);
@@ -64,7 +63,6 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
     const updates = {
       full_name: fullName.trim(),
       major: major.trim() || null,
-      phone: contactEmail.trim() || null,
     };
     if (isStudent) {
       updates.code = code.trim() || null;
@@ -176,15 +174,6 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
               </select>
             </Field>
           )}
-          <Field label="อีเมลติดต่อ">
-            <input
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              className="input"
-              placeholder="เช่น name@example.com"
-            />
-          </Field>
           {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
           <div className="flex gap-2.5">
             <button
@@ -196,7 +185,6 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
                 setCode(profile.code ?? "");
                 setMajor(profile.major ?? "");
                 setYearLevel(profile.year_level ?? "");
-                setContactEmail(profile.phone ?? "");
               }}
               className="flex-1 h-[46px] rounded-2xl border border-border text-ink2 font-semibold text-sm"
             >

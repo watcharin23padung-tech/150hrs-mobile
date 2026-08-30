@@ -180,14 +180,15 @@ export default function LoginPage() {
             )}
             {role === "student" && (
               <Field label="อาจารย์ที่ปรึกษา">
-                <select value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">
-                  <option value="">-- เลือกอาจารย์ที่ปรึกษา (เลือกภายหลังได้) --</option>
+                <select required value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">
+                  <option value="">-- เลือกอาจารย์ที่ปรึกษา --</option>
                   {teachers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.full_name}
                     </option>
                   ))}
                 </select>
+                <div className="text-[11.5px] text-ink3">แก้ไขเปลี่ยนอาจารย์ที่ปรึกษาภายหลังได้จากหน้าโปรไฟล์</div>
               </Field>
             )}
           </>

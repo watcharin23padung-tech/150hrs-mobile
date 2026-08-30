@@ -144,6 +144,11 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
                   {entry.supervisor_position ? ` · ${entry.supervisor_position}` : ""}
                 </div>
               )}
+              {entry.supervisor_phone && (
+                <a href={`tel:${entry.supervisor_phone}`} className="text-[12.5px] text-ink2">
+                  โทร. {entry.supervisor_phone}
+                </a>
+              )}
               {entry.supervisor_evidence_url ? (
                 <a
                   href={entry.supervisor_evidence_url}

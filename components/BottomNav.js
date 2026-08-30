@@ -65,9 +65,10 @@ export default function BottomNav({ role }) {
         const active = pathname.startsWith(item.href);
         const color = active ? "oklch(55% 0.13 165)" : "oklch(64% 0.015 80)";
         return (
-          <Link key={item.href} href={item.href} className="flex-1 flex flex-col items-center gap-[3px]">
+          <Link key={item.href} href={item.href} className="relative flex-1 flex flex-col items-center gap-[3px]">
             {item.icon(color)}
             <div className={`text-[10.5px] ${active ? "font-semibold text-primary" : "text-ink3"}`}>{item.label}</div>
+            {active && <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-5 h-[3px] rounded-full bg-accent" />}
           </Link>
         );
       })}

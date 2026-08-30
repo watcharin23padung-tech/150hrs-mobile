@@ -195,7 +195,7 @@ export default function EntryForm({ initial, major }) {
         <Field label="สถานที่ฝึกประสบการณ์">
           <input required value={place} onChange={(e) => setPlace(e.target.value)} placeholder="เช่น สนามกีฬาโรงเรียนสาธิตฯ" className="input" />
         </Field>
-        <Field label="วันที่ทำกิจกรรม">
+        <Field label="วันที่ทำกิจกรรม (หากปฏิบัติงานเดียวกันหลายวัน ให้บันทึกทีละวัน)">
           <input required type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
         </Field>
         <div className="flex gap-3">
@@ -293,7 +293,7 @@ export default function EntryForm({ initial, major }) {
           <button
             type="submit"
             disabled={saving}
-            className="h-[52px] rounded-2xl bg-primary text-white font-semibold text-[15px] disabled:opacity-60"
+            className="h-[52px] rounded-2xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-[15px] shadow-md shadow-primary/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
           >
             {saving && savingMode !== "next" ? "กำลังบันทึก..." : isEdit ? "บันทึกและส่งใหม่" : "ส่งบันทึกและเสร็จสิ้น"}
           </button>

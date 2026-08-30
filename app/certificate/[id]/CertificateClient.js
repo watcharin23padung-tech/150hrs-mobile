@@ -13,7 +13,7 @@ export default function CertificateClient({ student, advisor, categoryHours, tot
         <button onClick={() => router.back()} className="text-[13px] font-semibold text-ink2">
           ← กลับ
         </button>
-        <button onClick={() => window.print()} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold text-[13px]">
+        <button onClick={() => window.print()} className="h-10 px-5 rounded-xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-[13px] shadow-md shadow-primary/20 transition-transform active:scale-[0.98]">
           พิมพ์เอกสาร / บันทึกเป็น PDF
         </button>
       </div>

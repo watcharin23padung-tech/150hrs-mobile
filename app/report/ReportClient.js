@@ -252,7 +252,7 @@ function StudentCard({ student, onCertify, certifying, isAdmin, teachers, onReas
             <button
               onClick={() => onCertify?.(student.id)}
               disabled={certifying}
-              className="w-full h-10 rounded-xl bg-primary text-white font-semibold text-[12.5px] disabled:opacity-60"
+              className="w-full h-10 rounded-xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-[12.5px] shadow-md shadow-primary/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
             >
               {certifying ? "กำลังรับรอง..." : "🏆 รับรองผลการฝึกฯ ครบเกณฑ์แล้ว"}
             </button>

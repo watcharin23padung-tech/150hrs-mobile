@@ -225,7 +225,7 @@ export default async function HomePage() {
 
           <Link
             href="/report"
-            className="h-11 rounded-xl bg-primary text-white font-semibold text-sm flex items-center justify-center"
+            className="h-11 rounded-xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-sm flex items-center justify-center shadow-md shadow-primary/20 transition-transform active:scale-[0.98]"
           >
             ดูรายงานนิสิตทั้งหมด / จัดการอาจารย์ที่ปรึกษา
           </Link>

@@ -25,6 +25,7 @@ body {
   width: 100%;
 }
 .input:focus {
-  outline: 2px solid oklch(55% 0.13 165);
-  outline-offset: 1px;
+  outline: none;
+  border-color: oklch(55% 0.13 165);
+  box-shadow: 0 0 0 3px oklch(94% 0.05 165);
 }

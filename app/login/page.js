@@ -78,9 +78,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="flex flex-col items-center gap-3 px-8 pt-14 pb-5">
+      <div className="flex flex-col items-center gap-3 px-8 pt-10 pb-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Burapha University x Faculty of Sport Science" className="w-full max-w-[260px] h-auto" />
+        <img src="/logo.png" alt="Burapha University x Faculty of Sport Science" className="w-full max-w-[210px] h-auto" />
+        <div className="w-10 h-[3px] rounded-full bg-accent" />
         <div className="flex flex-col items-center gap-1">
           <div className="font-head font-bold text-lg text-ink text-center leading-snug">
             ระบบการฝึกประสบการณ์ด้านบริการวิชาการแก่ชุมชน 150 ชั่วโมง
@@ -90,24 +91,26 @@ export default function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 pb-6 flex-grow overflow-y-auto">
-        <div className="flex bg-surfacealt rounded-xl p-1 gap-1">
+        <div className="flex bg-surfacealt rounded-xl p-1 gap-1 shadow-inner">
           <button
             type="button"
             onClick={() => setMode("login")}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
-              mode === "login" ? "bg-white text-primary shadow-sm" : "text-ink2"
+            className={`relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+              mode === "login" ? "bg-white text-primarydark shadow-md" : "text-ink2"
             }`}
           >
             เข้าสู่ระบบ
+            {mode === "login" && <span className="absolute left-1/2 -translate-x-1/2 bottom-1 w-6 h-[3px] rounded-full bg-accent" />}
           </button>
           <button
             type="button"
             onClick={() => setMode("signup")}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
-              mode === "signup" ? "bg-white text-primary shadow-sm" : "text-ink2"
+            className={`relative flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+              mode === "signup" ? "bg-white text-primarydark shadow-md" : "text-ink2"
             }`}
           >
             ลงทะเบียนใช้งาน
+            {mode === "signup" && <span className="absolute left-1/2 -translate-x-1/2 bottom-1 w-6 h-[3px] rounded-full bg-accent" />}
           </button>
         </div>
 
@@ -224,13 +227,13 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="h-[52px] rounded-2xl bg-primary text-white font-semibold text-[15px] disabled:opacity-60"
+          className="h-[52px] rounded-2xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-[15px] shadow-lg shadow-primary/25 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
         >
           {loading ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ระบบ" : "ลงทะเบียนใช้งาน"}
         </button>
       </form>
 
-      <div className="text-center text-[11px] text-ink3 leading-relaxed pb-4">
+      <div className="text-center text-[11px] text-ink2 leading-relaxed pb-4">
         พัฒนาและดูแลระบบ: ดร.วัชชริน ผดุงรัชดากิจ @2569
         <br />
         สาขาวิชาสื่อสารทางกีฬา คณะวิทยาศาสตร์การกีฬา

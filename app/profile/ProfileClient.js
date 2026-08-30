@@ -188,7 +188,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
             <button
               type="submit"
               disabled={savingInfo}
-              className="flex-1 h-[46px] rounded-2xl bg-primary text-white font-semibold text-sm disabled:opacity-60"
+              className="flex-1 h-[46px] rounded-2xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-sm shadow-md shadow-primary/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
             >
               {savingInfo ? "กำลังบันทึก..." : "บันทึก"}
             </button>
@@ -272,7 +272,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
               type="button"
               disabled={savingSignature}
               onClick={saveSignature}
-              className="h-11 rounded-xl bg-primary text-white font-semibold text-[13px] disabled:opacity-60"
+              className="h-11 rounded-xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-[13px] shadow-md shadow-primary/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
             >
               {savingSignature ? "กำลังบันทึก..." : "บันทึกลายเซ็น"}
             </button>

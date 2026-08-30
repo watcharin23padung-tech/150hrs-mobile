@@ -209,7 +209,7 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
                   <button
                     disabled={deleting}
                     onClick={deleteEntry}
-                    className="flex-1 h-11 rounded-xl bg-danger text-white font-semibold text-[13px] disabled:opacity-60"
+                    className="flex-1 h-11 rounded-xl bg-danger text-white font-semibold text-[13px] shadow-md shadow-danger/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
                   >
                     {deleting ? "กำลังลบ..." : "ยืนยันลบ"}
                   </button>
@@ -232,7 +232,7 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
           <button
             disabled={saving}
             onClick={() => review("approved")}
-            className="flex-1 h-[50px] rounded-2xl bg-primary text-white font-semibold text-sm disabled:opacity-60"
+            className="flex-1 h-[50px] rounded-2xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-sm shadow-md shadow-primary/20 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
           >
             อนุมัติ
           </button>

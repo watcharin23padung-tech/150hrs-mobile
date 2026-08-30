@@ -244,7 +244,7 @@ export default function LoginPage() {
       </form>
 
       <div className="text-center text-[11px] text-ink3 leading-relaxed pb-4">
-        พัฒนาระบบ ดร.วัชชริน ผดุงรัชดากิจ @2569
+        พัฒนาและดูแลระบบ: ดร.วัชชริน ผดุงรัชดากิจ @2569
         <br />
         สาขาวิชาสื่อสารทางกีฬา คณะวิทยาศาสตร์การกีฬา
         <br />

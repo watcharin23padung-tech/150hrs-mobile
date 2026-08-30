@@ -25,6 +25,7 @@ export default function LoginPage() {
   const [teachers, setTeachers] = useState([]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,6 +41,11 @@ export default function LoginPage() {
 
     if (mode === "signup" && !/@(go\.)?buu\.ac\.th$/i.test(email.trim())) {
       setError("กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th หรือ @buu.ac.th เท่านั้น");
+      return;
+    }
+
+    if (mode === "signup" && !agreed) {
+      setError("กรุณาอ่านและยอมรับประกาศความเป็นส่วนตัวก่อนลงทะเบียน");
       return;
     }
 
@@ -224,11 +230,54 @@ export default function LoginPage() {
           />
         </Field>
 
+        {mode === "signup" && (
+          <div className="flex flex-col gap-2">
+            <div className="text-[12.5px] font-semibold text-ink">ประกาศความเป็นส่วนตัว</div>
+            <div className="max-h-[180px] overflow-y-auto rounded-xl border border-border bg-surfacealt p-3 text-[11.5px] leading-relaxed text-ink2 flex flex-col gap-2">
+              <div>
+                ระบบนี้จัดทำโดยคณะวิทยาศาสตร์การกีฬา มหาวิทยาลัยบูรพา เพื่อบันทึกและติดตามชั่วโมงการฝึกประสบการณ์ด้านบริการวิชาการแก่ชุมชนของนิสิต
+              </div>
+              <div>
+                <span className="font-semibold text-ink">ข้อมูลที่เก็บ:</span> ชื่อ-นามสกุล รหัสนิสิต สาขาวิชา ชั้นปี อีเมล
+                ข้อมูลการฝึกประสบการณ์ (สถานที่ วันเวลา ชั่วโมง หลักฐาน) และข้อมูลผู้รับผิดชอบโครงการ ณ หน่วยงานที่นิสิตเลือกกรอกเพิ่มเติม
+                (กรณีกรอกข้อมูลผู้รับผิดชอบโครงการ นิสิตควรแจ้งให้บุคคลนั้นทราบล่วงหน้าว่าข้อมูลจะถูกบันทึกในระบบนี้)
+              </div>
+              <div>
+                <span className="font-semibold text-ink">วัตถุประสงค์:</span> ใช้เพื่อการศึกษาเท่านั้น ได้แก่
+                บันทึกและตรวจสอบชั่วโมงฝึกประสบการณ์ ให้อาจารย์ที่ปรึกษาพิจารณาอนุมัติ และออกเอกสารรับรองผล
+                เพื่อให้บรรลุวัตถุประสงค์ของหลักสูตรตามที่คณะกำหนด
+              </div>
+              <div>
+                <span className="font-semibold text-ink">ผู้เข้าถึงข้อมูล:</span> อาจารย์ที่ปรึกษาของนิสิต
+                และผู้ดูแลระบบของคณะ เข้าถึงได้เฉพาะข้อมูลที่จำเป็นต่อการปฏิบัติหน้าที่เท่านั้น
+              </div>
+              <div>
+                <span className="font-semibold text-ink">การจัดเก็บและระยะเวลา:</span> ข้อมูลจัดเก็บบนระบบคลาวด์ที่มีการเข้ารหัสและจำกัดสิทธิ์การเข้าถึง
+                โดยเซิร์ฟเวอร์ตั้งอยู่นอกประเทศไทย (ประเทศญี่ปุ่น) ข้อมูลจะถูกเก็บไว้ตลอดระยะเวลาที่นิสิตศึกษาอยู่
+                และเก็บต่อเนื่องอีกไม่เกิน 3 ปีหลังจบการศึกษาเพื่อวัตถุประสงค์ในการตรวจสอบย้อนหลัง จากนั้นจะถูกลบออกจากระบบ
+              </div>
+              <div>
+                <span className="font-semibold text-ink">สิทธิของท่าน:</span> ท่านสามารถขอเข้าถึง แก้ไข
+                หรือขอให้ลบข้อมูลของท่านได้ โดยติดต่อผู้ดูแลระบบที่อีเมล wacharin@buu.ac.th
+              </div>
+            </div>
+            <label className="flex items-start gap-2 text-[12.5px] text-ink2">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 w-4 h-4 flex-shrink-0"
+              />
+              <span>ข้าพเจ้ารับทราบและยินยอมให้จัดเก็บและใช้ข้อมูลตามประกาศความเป็นส่วนตัวข้างต้น</span>
+            </label>
+          </div>
+        )}
+
         {error && <div className="text-danger text-sm bg-dangertint rounded-lg px-3 py-2">{error}</div>}
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || (mode === "signup" && !agreed)}
           className="h-[52px] rounded-2xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-[15px] shadow-lg shadow-primary/25 transition-transform active:scale-[0.98] disabled:opacity-60 disabled:shadow-none"
         >
           {loading ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ระบบ" : "ลงทะเบียนใช้งาน"}

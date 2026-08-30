@@ -76,7 +76,7 @@ export default function EntryForm({ initial, major }) {
           .update({ ...payload, status: "pending", reviewer_comment: null, reviewed_at: null })
           .eq("id", initial.id);
         if (error) throw error;
-        router.push(`/entries/${initial.id}`);
+        router.push(`/entries/${initial.id}?new=1`);
         router.refresh();
         return;
       }
@@ -97,11 +97,13 @@ export default function EntryForm({ initial, major }) {
         setEndTime("");
         setHours("");
         setDescription("");
-        setSuccessMsg(`บันทึกวันที่ ${formatDateTh(payload.activity_date)} แล้ว (${payload.hours} ชม.) — กรอกรายการถัดไปได้เลย`);
+        setSuccessMsg(
+          `บันทึกวันที่ ${formatDateTh(payload.activity_date)} แล้ว (${payload.hours} ชม.) — อย่าลืมแจ้งอาจารย์ที่ปรึกษาให้ตรวจสอบด้วยนะคะ`
+        );
         setSaving(false);
         setSavingMode(null);
       } else {
-        router.push(`/entries/${data.id}`);
+        router.push(`/entries/${data.id}?new=1`);
         router.refresh();
       }
     } catch (err) {

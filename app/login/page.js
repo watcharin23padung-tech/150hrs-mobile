@@ -28,6 +28,7 @@ export default function LoginPage() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [signupDone, setSignupDone] = useState(false);
 
   useEffect(() => {
     if (mode === "signup" && role === "student" && teachers.length === 0) {
@@ -78,6 +79,9 @@ export default function LoginPage() {
           if (role === "student" && advisorId) updates.advisor_id = advisorId;
           await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
+        setSignupDone(true);
+        setLoading(false);
+        return;
       }
       router.push("/home");
       router.refresh();
@@ -108,6 +112,27 @@ export default function LoginPage() {
         </div>
       </div>
 
+      {signupDone ? (
+        <div className="flex flex-col items-center gap-4 px-8 pb-10 flex-grow overflow-y-auto text-center">
+          <div className="w-16 h-16 rounded-full bg-primarytint flex items-center justify-center text-3xl">✉️</div>
+          <div className="font-head font-bold text-lg text-ink">ลงทะเบียนสำเร็จ</div>
+          <div className="text-sm text-ink2 leading-relaxed">
+            ระบบได้ส่งอีเมลยืนยันไปที่ <span className="font-semibold text-ink">{email}</span> แล้ว
+            กรุณาตรวจสอบกล่องอีเมล (รวมถึงโฟลเดอร์ Junk/Spam) แล้วกดลิงก์ยืนยันก่อนเข้าสู่ระบบ
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSignupDone(false);
+              setMode("login");
+              setPassword("");
+            }}
+            className="mt-2 w-full max-w-xs rounded-xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold py-3 shadow-lg shadow-primary/25 transition-transform active:scale-[0.98]"
+          >
+            กลับไปหน้าเข้าสู่ระบบ
+          </button>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-6 pb-6 flex-grow overflow-y-auto">
         <div className="flex bg-surfacealt rounded-xl p-1 gap-1 shadow-inner">
           <button
@@ -294,6 +319,7 @@ export default function LoginPage() {
           {loading ? "กำลังดำเนินการ..." : mode === "login" ? "เข้าสู่ระบบ" : "ลงทะเบียนใช้งาน"}
         </button>
       </form>
+      )}
 
       <div className="text-center text-[11px] text-ink2 leading-relaxed pb-4">
         พัฒนาและดูแลระบบ: ดร.วัชชริน ผดุงรัชดากิจ @2569

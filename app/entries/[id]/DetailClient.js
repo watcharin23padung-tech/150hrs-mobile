@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import StatusBadge from "@/components/StatusBadge";
 import { formatThaiDate } from "@/lib/status";
 
 export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isJustSubmitted = searchParams.get("new") === "1" && isOwner;
   const supabase = createClient();
   const [comment, setComment] = useState(entry.reviewer_comment ?? "");
   const [copied, setCopied] = useState(false);
@@ -68,6 +70,11 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
       </div>
 
       <div className="flex-grow overflow-y-auto px-5 pb-5 flex flex-col gap-4">
+        {isJustSubmitted && (
+          <div className="bg-primarytint rounded-2xl px-3.5 py-3 text-[13px] text-primarydark leading-relaxed">
+            บันทึกสำเร็จ! อย่าลืมแจ้งอาจารย์ที่ปรึกษาให้เข้ามาตรวจสอบและอนุมัติรายการนี้ด้วยนะคะ
+          </div>
+        )}
         <div className="bg-surface border border-border rounded-[18px] p-[18px] flex flex-col gap-3.5">
           <div className="flex items-start justify-between gap-2.5">
             <div className="font-head font-bold text-[17px] text-ink">{entry.place}</div>

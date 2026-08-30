@@ -309,7 +309,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
       </button>
 
       <div className="text-center text-[11px] text-ink3 leading-relaxed pb-2">
-        พัฒนาระบบ ดร.วัชชริน ผดุงรัชดากิจ @2569
+        พัฒนาและดูแลระบบ: ดร.วัชชริน ผดุงรัชดากิจ @2569
         <br />
         สาขาวิชาสื่อสารทางกีฬา คณะวิทยาศาสตร์การกีฬา
         <br />

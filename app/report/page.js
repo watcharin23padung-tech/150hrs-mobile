@@ -4,6 +4,7 @@ import ReportClient from "./ReportClient";
 import StudentReportClient from "./StudentReportClient";
 import AppFrame from "@/components/AppFrame";
 import { MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { computeYearLevel } from "@/lib/yearLevel";
 
 export default async function ReportPage() {
   const supabase = createClient();
@@ -91,7 +92,7 @@ export default async function ReportPage() {
       fullName: a.full_name,
       code: a.code,
       major: a.major,
-      yearLevel: a.year_level,
+      yearLevel: computeYearLevel(a.code),
       target,
       approvedHours,
       percent,

@@ -19,7 +19,6 @@ export default function LoginPage() {
   const [fullName, setFullName] = useState("");
   const [code, setCode] = useState("");
   const [major, setMajor] = useState("");
-  const [yearLevel, setYearLevel] = useState("");
   const [advisorId, setAdvisorId] = useState("");
   const [teachers, setTeachers] = useState([]);
   const [email, setEmail] = useState("");
@@ -54,11 +53,10 @@ export default function LoginPage() {
           options: { data: { role, full_name: fullName.trim() } },
         });
         if (error) throw error;
-        if (data.user && (code || major || yearLevel || (role === "student" && advisorId))) {
+        if (data.user && (code || major || (role === "student" && advisorId))) {
           const updates = {};
           if (role === "student" && code) updates.code = code;
           if (major) updates.major = major;
-          if (role === "student" && yearLevel) updates.year_level = Number(yearLevel);
           if (role === "student" && advisorId) updates.advisor_id = advisorId;
           await supabase.from("profiles").update(updates).eq("id", data.user.id);
         }
@@ -178,18 +176,6 @@ export default function LoginPage() {
                   placeholder="เช่น วิทยาศาสตร์การออกกำลังกายและการกีฬา"
                   className="input"
                 />
-              </Field>
-            )}
-            {role === "student" && (
-              <Field label="ชั้นปี">
-                <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">
-                  <option value="">-- เลือกชั้นปี --</option>
-                  <option value="1">ปี 1</option>
-                  <option value="2">ปี 2</option>
-                  <option value="3">ปี 3</option>
-                  <option value="4">ปี 4</option>
-                  <option value="5">ปี 5 ขึ้นไป</option>
-                </select>
               </Field>
             )}
             {role === "student" && (

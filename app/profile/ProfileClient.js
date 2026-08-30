@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import SignaturePad from "@/components/SignaturePad";
+import { computeYearLevel } from "@/lib/yearLevel";
 
 const MAJORS = [
   "สาขาวิชาสื่อสารทางกีฬา",
@@ -28,7 +29,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
   const [fullName, setFullName] = useState(profile.full_name ?? "");
   const [code, setCode] = useState(profile.code ?? "");
   const [major, setMajor] = useState(profile.major ?? "");
-  const [yearLevel, setYearLevel] = useState(profile.year_level ?? "");
+  const autoYearLevel = computeYearLevel(profile.code);
 
   const [signatureData, setSignatureData] = useState(profile.signature_data ?? "");
   const [savingSignature, setSavingSignature] = useState(false);
@@ -66,7 +67,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
     };
     if (isStudent) {
       updates.code = code.trim() || null;
-      updates.year_level = yearLevel ? Number(yearLevel) : null;
+      updates.year_level = computeYearLevel(code.trim());
     }
     const { error } = await supabase.from("profiles").update(updates).eq("id", profile.id);
     setSavingInfo(false);
@@ -103,7 +104,7 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
           <div className="font-head font-bold text-lg text-ink">{profile.full_name}</div>
           <div className="text-[13px] text-ink2">
             {isStudent
-              ? `รหัสนิสิต ${profile.code ?? "-"}${profile.year_level ? " · ปี " + profile.year_level : ""}${
+              ? `รหัสนิสิต ${profile.code ?? "-"}${autoYearLevel ? " · ปี " + autoYearLevel : ""}${
                   profile.major ? " · " + profile.major : " · วิทยาศาสตร์การกีฬา"
                 }`
               : `อาจารย์ที่ปรึกษาฝึกประสบการณ์${profile.major ? " · " + profile.major : ""}`}
@@ -164,14 +165,9 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
           )}
           {isStudent && (
             <Field label="ชั้นปี">
-              <select value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} className="input">
-                <option value="">-- เลือกชั้นปี --</option>
-                <option value="1">ปี 1</option>
-                <option value="2">ปี 2</option>
-                <option value="3">ปี 3</option>
-                <option value="4">ปี 4</option>
-                <option value="5">ปี 5 ขึ้นไป</option>
-              </select>
+              <div className="input flex items-center text-ink2 bg-surfacealt">
+                {computeYearLevel(code) ? `ปี ${computeYearLevel(code)} (คำนวณอัตโนมัติจากรหัสนิสิต)` : "กรอกรหัสนิสิตเพื่อคำนวณชั้นปีอัตโนมัติ"}
+              </div>
             </Field>
           )}
           {infoError && <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{infoError}</div>}
@@ -184,7 +180,6 @@ export default function ProfileClient({ profile, stats, teachers = [] }) {
                 setFullName(profile.full_name ?? "");
                 setCode(profile.code ?? "");
                 setMajor(profile.major ?? "");
-                setYearLevel(profile.year_level ?? "");
               }}
               className="flex-1 h-[46px] rounded-2xl border border-border text-ink2 font-semibold text-sm"
             >

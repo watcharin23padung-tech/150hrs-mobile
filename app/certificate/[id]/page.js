@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CertificateClient from "./CertificateClient";
 import { MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { computeYearLevel } from "@/lib/yearLevel";
 
 export default async function CertificatePage({ params }) {
   const supabase = createClient();
@@ -72,7 +73,7 @@ export default async function CertificatePage({ params }) {
 
   return (
     <CertificateClient
-      student={student}
+      student={{ ...student, year_level: computeYearLevel(student.code) }}
       advisor={advisor}
       categoryHours={categoryHours}
       totalHours={totalHours}

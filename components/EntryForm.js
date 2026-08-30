@@ -20,6 +20,7 @@ export default function EntryForm({ initial, major }) {
   const [evidenceName, setEvidenceName] = useState(initial?.evidence_name ?? "");
   const [supervisorName, setSupervisorName] = useState(initial?.supervisor_name ?? "");
   const [supervisorPosition, setSupervisorPosition] = useState(initial?.supervisor_position ?? "");
+  const [supervisorPhone, setSupervisorPhone] = useState(initial?.supervisor_phone ?? "");
   const [supervisorEvidenceUrl, setSupervisorEvidenceUrl] = useState(initial?.supervisor_evidence_url ?? "");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -65,6 +66,7 @@ export default function EntryForm({ initial, major }) {
         evidence_name: evidenceName || null,
         supervisor_name: supervisorName || null,
         supervisor_position: supervisorPosition || null,
+        supervisor_phone: supervisorPhone || null,
         supervisor_evidence_url: supervisorEvidenceUrl || null,
         work_category: workCategory,
         work_type: resolvedWorkType,
@@ -246,6 +248,15 @@ export default function EntryForm({ initial, major }) {
             value={supervisorPosition}
             onChange={(e) => setSupervisorPosition(e.target.value)}
             placeholder="เช่น ครูพลศึกษา โรงเรียนสาธิตฯ"
+            className="input"
+          />
+        </Field>
+        <Field label="หมายเลขโทรศัพท์ผู้รับผิดชอบโครงการ">
+          <input
+            type="tel"
+            value={supervisorPhone}
+            onChange={(e) => setSupervisorPhone(e.target.value)}
+            placeholder="เช่น 081-234-5678"
             className="input"
           />
         </Field>

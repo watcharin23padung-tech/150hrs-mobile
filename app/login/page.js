@@ -49,8 +49,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_active")
+          .eq("id", signInData.user.id)
+          .single();
+        if (profile && profile.is_active === false) {
+          await supabase.auth.signOut();
+          throw new Error("บัญชีนี้ถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ");
+        }
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,

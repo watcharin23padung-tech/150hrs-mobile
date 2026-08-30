@@ -25,11 +25,19 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
   const [certifyError, setCertifyError] = useState("");
 
   const [reassigningId, setReassigningId] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
 
   async function handleReassign(studentId, advisorId) {
     setReassigningId(studentId);
     await supabase.from("profiles").update({ advisor_id: advisorId || null }).eq("id", studentId);
     setReassigningId(null);
+    router.refresh();
+  }
+
+  async function handleToggleActive(userId, nextActive) {
+    setTogglingId(userId);
+    await supabase.from("profiles").update({ is_active: nextActive }).eq("id", userId);
+    setTogglingId(null);
     router.refresh();
   }
 
@@ -145,6 +153,34 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
         <div className="text-danger text-[12.5px] bg-dangertint rounded-lg px-3 py-2">{certifyError}</div>
       )}
 
+      {isAdmin && teachers.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="font-head font-semibold text-sm text-ink">จัดการบัญชีอาจารย์</div>
+          <div className="flex flex-col gap-2">
+            {teachers.map((t) => (
+              <div
+                key={t.id}
+                className="bg-surface border border-border rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2"
+              >
+                <div className="flex flex-col min-w-0">
+                  <div className="text-[13px] font-semibold text-ink truncate">{t.full_name}</div>
+                  <div className="text-[11px] text-ink3 truncate">{t.email}</div>
+                </div>
+                <button
+                  onClick={() => handleToggleActive(t.id, t.is_active === false)}
+                  disabled={togglingId === t.id}
+                  className={`flex-shrink-0 h-8 px-3 rounded-lg text-[11.5px] font-semibold disabled:opacity-60 ${
+                    t.is_active === false ? "bg-primarytint text-primarydark" : "border border-danger text-danger"
+                  }`}
+                >
+                  {togglingId === t.id ? "..." : t.is_active === false ? "เปิดใช้งาน" : "ระงับบัญชี"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-2.5">
         {filtered.length === 0 && (
           <div className="text-[13px] text-ink3 bg-surfacealt rounded-2xl py-8 text-center">
@@ -162,6 +198,8 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
             teachers={teachers}
             onReassign={handleReassign}
             reassigning={reassigningId === s.id}
+            onToggleActive={handleToggleActive}
+            toggling={togglingId === s.id}
           />
         ))}
       </div>
@@ -169,7 +207,17 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
   );
 }
 
-function StudentCard({ student, onCertify, certifying, isAdmin, teachers, onReassign, reassigning }) {
+function StudentCard({
+  student,
+  onCertify,
+  certifying,
+  isAdmin,
+  teachers,
+  onReassign,
+  reassigning,
+  onToggleActive,
+  toggling,
+}) {
   const barTone =
     student.percent >= 100 ? "bg-primary" : student.percent === 0 ? "bg-danger" : "bg-primary";
 
@@ -177,7 +225,14 @@ function StudentCard({ student, onCertify, certifying, isAdmin, teachers, onReas
     <div className="bg-surface border border-border rounded-2xl p-4 flex flex-col gap-2.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-0.5 min-w-0">
-          <div className="text-[14px] font-semibold text-ink truncate">{student.fullName}</div>
+          <div className="text-[14px] font-semibold text-ink truncate flex items-center gap-1.5">
+            {student.fullName}
+            {student.isActive === false && (
+              <span className="flex-shrink-0 text-[10px] font-semibold text-danger bg-dangertint rounded-full px-1.5 py-0.5">
+                ระงับบัญชี
+              </span>
+            )}
+          </div>
           <div className="text-[11.5px] text-ink3 truncate">
             {[student.code, student.yearLevel ? `ปี ${student.yearLevel}` : null, student.major]
               .filter(Boolean)
@@ -236,6 +291,15 @@ function StudentCard({ student, onCertify, certifying, isAdmin, teachers, onReas
               </option>
             ))}
           </select>
+          <button
+            onClick={() => onToggleActive?.(student.id, student.isActive === false)}
+            disabled={toggling}
+            className={`flex-shrink-0 h-8 px-3 rounded-lg text-[11.5px] font-semibold disabled:opacity-60 ${
+              student.isActive === false ? "bg-primarytint text-primarydark" : "border border-danger text-danger"
+            }`}
+          >
+            {toggling ? "..." : student.isActive === false ? "เปิดใช้งาน" : "ระงับบัญชี"}
+          </button>
         </div>
       )}
 

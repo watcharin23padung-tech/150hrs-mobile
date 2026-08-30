@@ -36,7 +36,7 @@ export default async function ReportPage() {
 
   const adviseesQuery = supabase
     .from("profiles")
-    .select("id, full_name, code, major, year_level, target_hours, completion_certified_at, advisor_id")
+    .select("id, full_name, code, major, year_level, target_hours, completion_certified_at, advisor_id, is_active")
     .order("full_name");
 
   const { data: advisees } = isAdmin
@@ -45,7 +45,11 @@ export default async function ReportPage() {
 
   let teachers = [];
   if (isAdmin) {
-    const { data: teacherList } = await supabase.rpc("list_teachers");
+    const { data: teacherList } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, is_active")
+      .eq("role", "teacher")
+      .order("full_name");
     teachers = teacherList ?? [];
   }
   const teacherNameById = Object.fromEntries(teachers.map((t) => [t.id, t.full_name]));
@@ -106,6 +110,7 @@ export default async function ReportPage() {
       certifiedAt: a.completion_certified_at ?? null,
       advisorId: a.advisor_id ?? null,
       advisorName: a.advisor_id ? teacherNameById[a.advisor_id] ?? null : null,
+      isActive: a.is_active !== false,
     };
   });
 

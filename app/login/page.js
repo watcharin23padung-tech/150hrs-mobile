@@ -40,6 +40,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
+    if (mode === "signup" && !/@(go\.)?buu\.ac\.th$/i.test(email.trim())) {
+      setError("กรุณาใช้อีเมลของมหาวิทยาลัยที่ลงท้ายด้วย @go.buu.ac.th หรือ @buu.ac.th เท่านั้น");
+      return;
+    }
 
     if (mode === "signup" && !agreed) {
       setError("กรุณาอ่านและยอมรับประกาศความเป็นส่วนตัวก่อนลงทะเบียน");

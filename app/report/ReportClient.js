@@ -299,6 +299,19 @@ function StudentCard({
         </div>
       )}
 
+      {!student.eligible && student.percent >= 100 && student.categoryHours && (
+        <div className="text-[11px] text-danger bg-dangertint rounded-lg px-2.5 py-1.5 leading-snug">
+          ยังไม่ครบเกณฑ์:{" "}
+          {[
+            (student.categoryHours.main ?? 0) < MIN_MAIN_HOURS ? "งานหลักยังไม่ถึง 50 ชม." : null,
+            (student.categoryHours.secondary ?? 0) <= 0 ? "ยังไม่มีชั่วโมงงานรอง" : null,
+            (student.categoryHours.volunteer ?? 0) <= 0 ? "ยังไม่มีชั่วโมงจิตอาสา" : null,
+          ]
+            .filter(Boolean)
+            .join(" และ")}
+        </div>
+      )}
+
       {student.eligible && (
         <div className="pt-0.5">
           {student.certifiedAt ? (

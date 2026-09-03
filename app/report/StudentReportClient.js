@@ -115,6 +115,22 @@ export default function StudentReportClient({ profile, entries }) {
             </div>
           </div>
         </div>
+      ) : percent >= 100 ? (
+        <div className="bg-dangertint rounded-2xl p-4 flex items-center gap-3">
+          <div className="text-2xl flex-shrink-0">⚠️</div>
+          <div className="flex flex-col gap-0.5">
+            <div className="font-head font-bold text-[13.5px] text-danger">ยังไม่ครบเกณฑ์ แม้สะสมครบ {target} ชม. แล้ว</div>
+            <div className="text-[11.5px] text-[oklch(40%_0.1_25)] leading-snug">
+              {[
+                (allCategoryHours.main ?? 0) < MIN_MAIN_HOURS ? "ต้องมีชั่วโมงงานหลักอย่างน้อย 50 ชม." : null,
+                (allCategoryHours.secondary ?? 0) <= 0 ? "ยังไม่มีชั่วโมงงานรอง" : null,
+                (allCategoryHours.volunteer ?? 0) <= 0 ? "ยังไม่มีชั่วโมงจิตอาสา" : null,
+              ]
+                .filter(Boolean)
+                .join(" และ")}
+            </div>
+          </div>
+        </div>
       ) : null}
 
       <div className="grid grid-cols-3 gap-2.5">

@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import CertificateClient from "./CertificateClient";
-import { MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { MIN_MAIN_HOURS, computeCategoryHours } from "@/lib/workCategories";
 import { computeYearLevel } from "@/lib/yearLevel";
 
 export default async function CertificatePage({ params }) {
@@ -31,11 +31,7 @@ export default async function CertificatePage({ params }) {
     .eq("student_id", student.id)
     .eq("status", "approved");
 
-  const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
-  (entries ?? []).forEach((e) => {
-    const cat = e.work_category ?? "main";
-    categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
-  });
+  const categoryHours = computeCategoryHours(entries);
   const totalHours = (entries ?? []).reduce((s, e) => s + Number(e.hours), 0);
   const target = Number(student.target_hours) || 150;
   const eligible = totalHours >= target && (categoryHours.main ?? 0) >= MIN_MAIN_HOURS;

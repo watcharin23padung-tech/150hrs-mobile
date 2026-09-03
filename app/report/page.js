@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import ReportClient from "./ReportClient";
 import StudentReportClient from "./StudentReportClient";
 import AppFrame from "@/components/AppFrame";
-import { MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { MIN_MAIN_HOURS, computeCategoryHours } from "@/lib/workCategories";
 import { computeYearLevel } from "@/lib/yearLevel";
 
 export default async function ReportPage() {
@@ -83,11 +83,7 @@ export default async function ReportPage() {
       .sort()
       .at(-1);
 
-    const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
-    approved.forEach((e) => {
-      const cat = e.work_category ?? "main";
-      categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
-    });
+    const categoryHours = computeCategoryHours(approved);
 
     const eligible = approvedHours >= target && (categoryHours.main ?? 0) >= MIN_MAIN_HOURS;
 

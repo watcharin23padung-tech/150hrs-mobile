@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EntryRow from "@/components/EntryRow";
 import AppFrame from "@/components/AppFrame";
+import { computeCategoryHours } from "@/lib/workCategories";
 
 export default async function HomePage() {
   const supabase = createClient();
@@ -47,11 +48,7 @@ export default async function HomePage() {
     const target = Number(profile.target_hours) || 150;
     const percent = Math.min(100, Math.round((approvedHours / target) * 100));
 
-    const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
-    approvedEntries.forEach((e) => {
-      const cat = e.work_category ?? "main";
-      categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
-    });
+    const categoryHours = computeCategoryHours(approvedEntries);
     const catPercent = (v) => Math.min(100, Math.round((v / target) * 100));
     const catColors = { main: "white", secondary: "oklch(85% 0.14 70)", volunteer: "oklch(75% 0.03 200)" };
     let accHours = 0;

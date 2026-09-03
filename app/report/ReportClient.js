@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatThaiDate } from "@/lib/status";
-import { MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { MIN_MAIN_HOURS, computeCategoryHours } from "@/lib/workCategories";
 import { academicYearLabel, getAcademicYear, listAcademicYears } from "@/lib/academicYear";
 
 const SORTS = {
@@ -65,11 +65,7 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
       const approvedInYear = (s.entries ?? []).filter(
         (e) => e.status === "approved" && getAcademicYear(e.activity_date) === yearFilter
       );
-      const categoryHours = { main: 0, secondary: 0, volunteer: 0 };
-      approvedInYear.forEach((e) => {
-        const cat = e.work_category ?? "main";
-        categoryHours[cat] = (categoryHours[cat] ?? 0) + Number(e.hours);
-      });
+      const categoryHours = computeCategoryHours(approvedInYear);
       const yearHours = approvedInYear.reduce((sum, e) => sum + Number(e.hours), 0);
       return { ...s, categoryHours, yearHours };
     });

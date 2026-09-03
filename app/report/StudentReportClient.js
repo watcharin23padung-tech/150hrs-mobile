@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatThaiDate } from "@/lib/status";
-import { CATEGORY_META, MIN_MAIN_HOURS } from "@/lib/workCategories";
+import { CATEGORY_META, MIN_MAIN_HOURS, computeCategoryHours } from "@/lib/workCategories";
 import { academicYearLabel, getAcademicYear, listAcademicYears } from "@/lib/academicYear";
 
 const MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
@@ -34,14 +34,7 @@ export default function StudentReportClient({ profile, entries }) {
   );
   const yearApproved = yearEntries.filter((e) => e.status === "approved");
 
-  const categoryHours = useMemo(() => {
-    const map = { main: 0, secondary: 0, volunteer: 0 };
-    yearApproved.forEach((e) => {
-      const cat = e.work_category ?? "main";
-      map[cat] = (map[cat] ?? 0) + Number(e.hours);
-    });
-    return map;
-  }, [yearApproved]);
+  const categoryHours = useMemo(() => computeCategoryHours(yearApproved), [yearApproved]);
 
   const filteredEntries = catFilter === "all" ? yearEntries : yearEntries.filter((e) => (e.work_category ?? "main") === catFilter);
 

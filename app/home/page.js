@@ -92,8 +92,8 @@ export default async function HomePage() {
 
           <div className="flex items-center gap-3 border-t border-white/15 pt-3">
             <CategoryLegend color="white" label="หลัก" value={categoryHours.main} percent={catPercent(categoryHours.main)} note={categoryHours.main >= 50 ? "ครบ 50+" : "ต้องครบ 50"} />
-            <CategoryLegend color="oklch(85% 0.14 70)" label="รอง" value={categoryHours.secondary} percent={catPercent(categoryHours.secondary)} />
-            <CategoryLegend color="oklch(75% 0.03 200)" label="จิตอาสา" value={categoryHours.volunteer} percent={catPercent(categoryHours.volunteer)} />
+            <CategoryLegend color="oklch(85% 0.14 70)" label="รอง" value={categoryHours.secondary} percent={catPercent(categoryHours.secondary)} note={categoryHours.secondary <= 0 ? "ต้องมี" : null} />
+            <CategoryLegend color="oklch(75% 0.03 200)" label="จิตอาสา" value={categoryHours.volunteer} percent={catPercent(categoryHours.volunteer)} note={categoryHours.volunteer <= 0 ? "ต้องมี" : null} />
           </div>
         </div>
 

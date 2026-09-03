@@ -16,6 +16,7 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   async function review(status) {
     setSaving(true);
@@ -47,8 +48,13 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
 
   async function deleteEntry() {
     setDeleting(true);
-    await supabase.from("internship_entries").delete().eq("id", entry.id);
+    setDeleteError("");
+    const { error } = await supabase.from("internship_entries").delete().eq("id", entry.id);
     setDeleting(false);
+    if (error) {
+      setDeleteError("ลบรายการไม่สำเร็จ: " + error.message);
+      return;
+    }
     router.push("/report");
     router.refresh();
   }
@@ -186,6 +192,9 @@ export default function DetailClient({ entry, role, isOwner, isAdvisor }) {
 
         {canDelete && (
           <div className="flex flex-col gap-2">
+            {deleteError && (
+              <div className="bg-dangertint text-danger text-[12.5px] rounded-xl p-3">{deleteError}</div>
+            )}
             {!confirmDelete ? (
               <button
                 onClick={() => setConfirmDelete(true)}

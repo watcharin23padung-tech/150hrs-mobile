@@ -85,7 +85,11 @@ export default async function ReportPage() {
 
     const categoryHours = computeCategoryHours(approved);
 
-    const eligible = approvedHours >= target && (categoryHours.main ?? 0) >= MIN_MAIN_HOURS;
+    const eligible =
+      approvedHours >= target &&
+      (categoryHours.main ?? 0) >= MIN_MAIN_HOURS &&
+      (categoryHours.secondary ?? 0) > 0 &&
+      (categoryHours.volunteer ?? 0) > 0;
 
     return {
       id: a.id,

@@ -34,7 +34,11 @@ export default async function CertificatePage({ params }) {
   const categoryHours = computeCategoryHours(entries);
   const totalHours = (entries ?? []).reduce((s, e) => s + Number(e.hours), 0);
   const target = Number(student.target_hours) || 150;
-  const eligible = totalHours >= target && (categoryHours.main ?? 0) >= MIN_MAIN_HOURS;
+  const eligible =
+    totalHours >= target &&
+    (categoryHours.main ?? 0) >= MIN_MAIN_HOURS &&
+    (categoryHours.secondary ?? 0) > 0 &&
+    (categoryHours.volunteer ?? 0) > 0;
 
   if (!student.completion_certified_at) {
     return (

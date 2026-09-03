@@ -21,11 +21,12 @@ export default function StudentReportClient({ profile, entries }) {
   const approvedHours = approved.reduce((s, e) => s + Number(e.hours), 0);
   const percent = Math.min(100, Math.round((approvedHours / target) * 100));
   const remaining = Math.max(0, target - approvedHours);
-  const mainHoursTotal = approved.reduce(
-    (s, e) => s + ((e.work_category ?? "main") === "main" ? Number(e.hours) : 0),
-    0
-  );
-  const eligible = approvedHours >= target && mainHoursTotal >= MIN_MAIN_HOURS;
+  const allCategoryHours = useMemo(() => computeCategoryHours(approved), [approved]);
+  const eligible =
+    approvedHours >= target &&
+    (allCategoryHours.main ?? 0) >= MIN_MAIN_HOURS &&
+    (allCategoryHours.secondary ?? 0) > 0 &&
+    (allCategoryHours.volunteer ?? 0) > 0;
 
   // รายการที่กรองตามปีการศึกษา (ใช้กับสรุปแยกภาระงาน, รายการ, และกราฟรายเดือน — ไม่กระทบวงกลมสรุปสะสมรวมด้านบน)
   const yearEntries = useMemo(

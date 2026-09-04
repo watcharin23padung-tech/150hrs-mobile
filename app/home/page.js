@@ -241,6 +241,36 @@ export default async function HomePage() {
     );
   }
 
+  if (profile.role === "staff") {
+    const { count: studentCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "student");
+
+    return (
+      <AppFrame role={profile.role}>
+        <div className="flex flex-col gap-5 p-5 pb-8">
+          <div className="flex flex-col gap-0.5">
+            <div className="text-[13px] text-ink3">เจ้าหน้าที่คณะ (ดูข้อมูลอย่างเดียว)</div>
+            <div className="font-head font-bold text-xl text-ink">{profile.full_name}</div>
+          </div>
+
+          <div className="bg-primary rounded-2xl p-4 flex flex-col gap-1">
+            <div className="font-head font-bold text-2xl text-white">{studentCount ?? 0}</div>
+            <div className="text-xs text-white/85">นิสิตทั้งหมดในระบบ</div>
+          </div>
+
+          <Link
+            href="/report"
+            className="h-11 rounded-xl bg-gradient-to-b from-primary to-primarydark text-white font-semibold text-sm flex items-center justify-center shadow-md shadow-primary/20 transition-transform active:scale-[0.98]"
+          >
+            ดูรายงานความคืบหน้าของนิสิตทุกสาขา
+          </Link>
+        </div>
+      </AppFrame>
+    );
+  }
+
   // Teacher view
   const { data: advisees } = await supabase.from("profiles").select("id").eq("advisor_id", user.id);
   const adviseeIds = (advisees ?? []).map((a) => a.id);

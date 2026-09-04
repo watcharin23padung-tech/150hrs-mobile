@@ -33,18 +33,20 @@ export default async function ReportPage() {
   }
 
   const isAdmin = profile.role === "admin";
+  const isStaff = profile.role === "staff";
+  const seesAllStudents = isAdmin || isStaff;
 
   const adviseesQuery = supabase
     .from("profiles")
     .select("id, full_name, code, major, year_level, target_hours, completion_certified_at, advisor_id, is_active")
     .order("full_name");
 
-  const { data: advisees } = isAdmin
+  const { data: advisees } = seesAllStudents
     ? await adviseesQuery.eq("role", "student")
     : await adviseesQuery.eq("advisor_id", user.id);
 
   let teachers = [];
-  if (isAdmin) {
+  if (seesAllStudents) {
     const { data: teacherList } = await supabase
       .from("profiles")
       .select("id, full_name, email, is_active")
@@ -116,7 +118,7 @@ export default async function ReportPage() {
 
   return (
     <AppFrame role={profile.role}>
-      <ReportClient students={students} isAdmin={isAdmin} teachers={teachers} />
+      <ReportClient students={students} isAdmin={isAdmin} teachers={teachers} readOnly={isStaff} />
     </AppFrame>
   );
 }

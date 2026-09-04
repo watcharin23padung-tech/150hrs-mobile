@@ -15,7 +15,7 @@ const SORTS = {
   pending: { label: "รออนุมัติมากสุดก่อน", fn: (a, b) => b.pendingCount - a.pendingCount },
 };
 
-export default function ReportClient({ students, isAdmin = false, teachers = [] }) {
+export default function ReportClient({ students, isAdmin = false, teachers = [], readOnly = false }) {
   const router = useRouter();
   const supabase = createClient();
   const [query, setQuery] = useState("");
@@ -95,11 +95,13 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
     <div className="flex flex-col gap-5 p-5 pb-8">
       <div className="flex flex-col gap-0.5">
         <div className="font-head font-bold text-xl text-ink">รายงานสรุปนิสิต</div>
-        <div className="text-[13px] text-ink3">ภาพรวมความคืบหน้าของนิสิตในความดูแลทั้งหมด</div>
+        <div className="text-[13px] text-ink3">
+          {readOnly ? "ภาพรวมความคืบหน้าของนิสิตทั้งคณะ (ดูอย่างเดียว)" : "ภาพรวมความคืบหน้าของนิสิตในความดูแลทั้งหมด"}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
-        <SummaryCard value={totalStudents} label="นิสิตในความดูแล" />
+        <SummaryCard value={totalStudents} label={readOnly ? "นิสิตทั้งหมด" : "นิสิตในความดูแล"} />
         <SummaryCard value={`${avgPercent}%`} label="ความคืบหน้าเฉลี่ย" tone="primary" />
         <SummaryCard value={notStarted} label="ยังไม่เริ่มบันทึก" tone="danger" />
         <SummaryCard value={totalPending} label="รายการรอตรวจรวม" tone="accent" />
@@ -196,6 +198,7 @@ export default function ReportClient({ students, isAdmin = false, teachers = [] 
             reassigning={reassigningId === s.id}
             onToggleActive={handleToggleActive}
             toggling={togglingId === s.id}
+            readOnly={readOnly}
           />
         ))}
       </div>
@@ -213,6 +216,7 @@ function StudentCard({
   reassigning,
   onToggleActive,
   toggling,
+  readOnly,
 }) {
   const barTone =
     student.percent >= 100 ? "bg-primary" : student.percent === 0 ? "bg-danger" : "bg-primary";
@@ -321,7 +325,7 @@ function StudentCard({
                 ดูเอกสาร
               </Link>
             </div>
-          ) : (
+          ) : !readOnly ? (
             <button
               onClick={() => onCertify?.(student.id)}
               disabled={certifying}
@@ -329,6 +333,10 @@ function StudentCard({
             >
               {certifying ? "กำลังรับรอง..." : "🏆 รับรองผลการฝึกฯ ครบเกณฑ์แล้ว"}
             </button>
+          ) : (
+            <div className="text-[11.5px] text-ink3 bg-surfacealt rounded-xl px-3 py-2 text-center">
+              รอการรับรองผลจากอาจารย์ที่ปรึกษา
+            </div>
           )}
         </div>
       )}

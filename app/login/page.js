@@ -178,13 +178,22 @@ export default function LoginPage() {
               >
                 อาจารย์
               </button>
+              <button
+                type="button"
+                onClick={() => setRole("staff")}
+                className={`flex-1 rounded-lg py-2.5 text-sm font-semibold ${
+                  role === "staff" ? "bg-white text-primary shadow-sm" : "text-ink2"
+                }`}
+              >
+                เจ้าหน้าที่คณะ
+              </button>
             </div>
             <Field label="ชื่อ-นามสกุล">
               <input
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder={role === "teacher" ? "เช่น ดร.วัชชริน ผดุงรัชดากิจ" : "เช่น นางสาวณิชา พงษ์ไพบูลย์"}
+                placeholder={role === "teacher" ? "เช่น ดร.วัชชริน ผดุงรัชดากิจ" : role === "staff" ? "เช่น นางสาวปิยะดา วงศ์สุริยา" : "เช่น นางสาวณิชา พงษ์ไพบูลย์"}
                 className="input"
               />
               <div className="text-[11.5px] text-ink3">
@@ -214,7 +223,7 @@ export default function LoginPage() {
                   ))}
                 </select>
               </Field>
-            ) : (
+            ) : role === "teacher" ? (
               <Field label="สาขาวิชา">
                 <input
                   value={major}
@@ -223,7 +232,7 @@ export default function LoginPage() {
                   className="input"
                 />
               </Field>
-            )}
+            ) : null}
             {role === "student" && (
               <Field label="อาจารย์ที่ปรึกษา">
                 <select required value={advisorId} onChange={(e) => setAdvisorId(e.target.value)} className="input">
